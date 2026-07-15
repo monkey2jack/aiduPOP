@@ -195,18 +195,23 @@ def build_panel_header(
     tool_steps: list[dict],
     tool_elapsed_ms: float = 0,
     show_reasoning: bool = True,
-    model: str | None = None,
+    context_used: int = 0,
+    context_max: int = 0,
 ) -> dict:
     """Build header dict for unified panel — 嘟嘟定制: 纯统计，无状态文字."""
     rounds_count = len(reasoning_rounds) + (1 if current_reasoning_text else 0)
     tools_count = len(tool_steps)
     elapsed_str = _format_elapsed(tool_elapsed_ms)
 
-    # 组装: ⚕model · 💭N · 🛠️N · ⏱elapsed
-    parts: list[str] = []
-    if model:
-        parts.append(f"⚕{model}")
-    parts.extend([f"💭{rounds_count}", f"🛠️{tools_count}", f"⏱{elapsed_str}"])
+    # Context string — 0 也显示 ⏳0
+    if context_max > 0:
+        pct = int(context_used / context_max * 100)
+        ctx_str = f"⏳{_compact(context_used)}/{_compact(context_max)}({pct}%)"
+    else:
+        ctx_str = "⏳0"
+
+    # 组装: 💭N · 🛠️N · ⏳ctx · ⏱elapsed
+    parts = [f"💭{rounds_count}", f"🛠️{tools_count}", ctx_str, f"⏱{elapsed_str}"]
     stats = " · ".join(parts)
 
     title_el = {
@@ -377,15 +382,16 @@ def build_panel_children(*, reasoning_rounds: list, current_reasoning_text: str 
 
     return children
 
-def build_unified_panel(*, reasoning_rounds: list, current_reasoning_text: str = "", tool_steps: list[dict], tool_elapsed_ms: float = 0, show_reasoning: bool = True, expanded: bool = False, element_id: str | None = None, panel_events: list[tuple[str, int]] | None = None, max_tool_steps: int = 20, max_reasoning_rounds: int = 20, border_color: str = "grey", model: str | None = None) -> dict:
-    """Build full unified panel — 嘟嘟定制: border_color + model 参数."""
+def build_unified_panel(*, reasoning_rounds: list, current_reasoning_text: str = "", tool_steps: list[dict], tool_elapsed_ms: float = 0, show_reasoning: bool = True, expanded: bool = False, element_id: str | None = None, panel_events: list[tuple[str, int]] | None = None, max_tool_steps: int = 20, max_reasoning_rounds: int = 20, context_used: int = 0, context_max: int = 0, border_color: str = "grey") -> dict:
+    """Build full unified panel — 嘟嘟定制: border_color 参数."""
     header = build_panel_header(
         reasoning_rounds=reasoning_rounds,
         current_reasoning_text=current_reasoning_text,
         tool_steps=tool_steps,
         tool_elapsed_ms=tool_elapsed_ms,
         show_reasoning=show_reasoning,
-        model=model,
+        context_used=context_used,
+        context_max=context_max,
     )
     children = build_panel_children(
         reasoning_rounds=reasoning_rounds,
@@ -617,7 +623,7 @@ def _build_footer_elements(
     show_label: bool = False,
 ) -> list[dict]:
     if fields is None:
-        fields = [["model"]]
+        fields = [["status", "elapsed", "context", "model"]]
 
     data = footer_data or {}
     en_lines: list[str] = []
@@ -773,8 +779,6 @@ def _render_footer_field(
 
     if name == "model":
         v = data.get("model") or None
-        if v:
-            v = f"⚕{v}"
         return v, v
 
     if name == "tokens":

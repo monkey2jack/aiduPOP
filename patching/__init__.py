@@ -29,6 +29,8 @@ __all__ = [
     '_patch_status',
     # v1.4.0: FeishuAdapter patched-class registry (deferred loading fix)
     '_patched_feishu_classes',
+    # v22.2: 模块级 model 缓存
+    '_model_cache',
     # Functions
     '_get_config',
     '_get_event_message_id',
@@ -84,6 +86,12 @@ __all__ = [
 # Thread-local storage for context propagation into worker threads
 _thread_local_ctx = threading.local()
 _thread_local_ctx.data = None
+
+# 【嘟嘟定制 v22.2 根治】模块级 model 缓存 — 不依赖 contextvar/thread-local/asyncio task 边界
+# _maybe_wrap_callbacks 写入，_get_model_from_ctx 读取。
+# 同一 gateway 进程内 model 不变，纯 Python 全局 dict 最可靠。
+# 升级时 grep "【嘟嘟定制 v22.2" 找回所有定制点。
+_model_cache: dict[str, str] = {}
 
 _logger = logging.getLogger("hermes_lark_streaming")
 
@@ -170,6 +178,41 @@ from .hooks import (  # noqa: E402
 
 # ── Public entry point ─────────────────────────────────────────────
 
+def _wrap_authorization_adapter(orig: Callable) -> Callable:
+    """Hook _authorization_adapter to auto-patch any FeishuAdapter class identity.
+
+    Python can create multiple class identities for the same source file when
+    imported through different namespace paths (e.g. hermes_plugins.feishu_platform
+    vs plugins.platforms.feishu).  This hook catches every adapter the gateway
+    resolves and patches send_clarify on any FeishuAdapter class that was missed.
+    """
+
+    def wrapper(self, platform, profile=None):
+        adapter = orig(self, platform, profile)
+        if adapter is not None:
+            cls = type(adapter)
+            cls_id = id(cls)
+            # _apply_feishu_adapter_patches is idempotent and safe —
+            # call unconditionally to catch any class identity the gateway resolves.
+            try:
+                _apply_feishu_adapter_patches(cls, is_repatch=True)
+                _logger.info(
+                    "hermes-lark-streaming: FeishuAdapter auto-patched via "
+                    "_authorization_adapter hook (class_id=%s)",
+                    cls_id,
+                )
+            except Exception:
+                _logger.debug(
+                    "hermes-lark-streaming: _authorization_adapter hook "
+                    "patch failed (class_id=%s)",
+                    cls_id,
+                    exc_info=True,
+                )
+        return adapter
+
+    return wrapper
+
+
 def _apply_gateway_runner_patches() -> bool:
     """Apply the three critical GatewayRunner method patches."""
     global _gw_runner_patched
@@ -219,6 +262,19 @@ def _apply_gateway_runner_patches() -> bool:
                 "no methods found. Streaming cards will NOT work."
             )
             return False
+
+        # 🔥 v1.5.2: Hook _authorization_adapter to auto-patch every
+        # FeishuAdapter class identity the gateway resolves.  Fixes three-
+        # identity bug where _status_adapter.send_clarify was never patched.
+        if hasattr(GatewayRunner, '_authorization_adapter'):
+            GatewayRunner._authorization_adapter = _wrap_authorization_adapter(
+                GatewayRunner._authorization_adapter
+            )
+            _patched_methods.append('_authorization_adapter')
+            _logger.info(
+                "hermes-lark-streaming: _authorization_adapter patched ✓ "
+                "(auto-patch FeishuAdapter on every resolution)"
+            )
 
         _gw_runner_patched = True
         _logger.info(
@@ -367,7 +423,21 @@ def _apply_feishu_adapter_patches(FeishuAdapter, *, is_repatch: bool = False) ->
     cls_id = id(FeishuAdapter)
     if cls_id in _patched_feishu_classes:
         if is_repatch:
-            pass
+            # Always re-patch send_clarify on repath — the class may have been
+            # marked "patched" despite a silent AttributeError on first attempt.
+            try:
+                FeishuAdapter.send_clarify = _wrap_feishu_adapter_send_clarify(
+                    FeishuAdapter.send_clarify
+                )
+                _logger.info(
+                    "hermes-lark-streaming: FeishuAdapter.send_clarify "
+                    "repatched ✓ (class_id=%s)", cls_id,
+                )
+            except AttributeError:
+                _logger.debug(
+                    "hermes-lark-streaming: FeishuAdapter.send_clarify "
+                    "repatch failed (class_id=%s)", cls_id,
+                )
         return True
 
     try:
@@ -376,20 +446,21 @@ def _apply_feishu_adapter_patches(FeishuAdapter, *, is_repatch: bool = False) ->
             FeishuAdapter.edit_message = _wrap_feishu_adapter_edit(FeishuAdapter.edit_message)
         except AttributeError:
             _logger.debug("hermes-lark-streaming: FeishuAdapter.edit_message not found, edit interception skipped")
-        try:
-            FeishuAdapter.add_reaction = _wrap_feishu_adapter_add_reaction(FeishuAdapter.add_reaction)
-        except AttributeError:
-            try:
-                FeishuAdapter._add_reaction = _wrap_feishu_adapter_add_reaction(FeishuAdapter._add_reaction)
-            except AttributeError:
-                _logger.debug("hermes-lark-streaming: FeishuAdapter.add_reaction/_add_reaction not found, reaction interception skipped")
-        try:
-            FeishuAdapter.delete_reaction = _wrap_feishu_adapter_delete_reaction(FeishuAdapter.delete_reaction)
-        except AttributeError:
-            try:
-                FeishuAdapter._remove_reaction = _wrap_feishu_adapter_delete_reaction(FeishuAdapter._remove_reaction)
-            except AttributeError:
-                _logger.debug("hermes-lark-streaming: FeishuAdapter.delete_reaction/_remove_reaction not found, reaction interception skipped")
+        # ── Reaction interception disabled (嘟嘟定制) ──
+        # try:
+        #     FeishuAdapter.add_reaction = _wrap_feishu_adapter_add_reaction(FeishuAdapter.add_reaction)
+        # except AttributeError:
+        #     try:
+        #         FeishuAdapter._add_reaction = _wrap_feishu_adapter_add_reaction(FeishuAdapter._add_reaction)
+        #     except AttributeError:
+        #         _logger.debug("hermes-lark-streaming: FeishuAdapter.add_reaction/_add_reaction not found, reaction interception skipped")
+        # try:
+        #     FeishuAdapter.delete_reaction = _wrap_feishu_adapter_delete_reaction(FeishuAdapter.delete_reaction)
+        # except AttributeError:
+        #     try:
+        #         FeishuAdapter._remove_reaction = _wrap_feishu_adapter_delete_reaction(FeishuAdapter._remove_reaction)
+        #     except AttributeError:
+        #         _logger.debug("hermes-lark-streaming: FeishuAdapter.delete_reaction/_remove_reaction not found, reaction interception skipped")
         # NOTE(v0.15.4): send_image_file / send_image interceptors DELETED (2026-06-09).
 
         try:

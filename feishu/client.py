@@ -366,6 +366,29 @@ class FeishuClient:
             return str(resp.data.message_id)
         raise FeishuAPIError("reply_card_by_id: response missing message_id")
 
+    async def send_card_by_id_to_chat(self, chat_id: str, card_id: str) -> str:
+        """发送独立 CardKit 卡片到聊天（非回复），返回 message_id."""
+        async def _do():
+            request = (
+                CreateMessageRequest.builder()
+                .receive_id_type("chat_id")
+                .request_body(
+                    CreateMessageRequestBody.builder()
+                    .receive_id(chat_id)
+                    .msg_type("interactive")
+                    .content(self._dumps({"type": "card", "data": {"card_id": card_id}}))
+                    .build()
+                )
+                .build()
+            )
+            resp = await self._client.im.v1.message.acreate(request)
+            self._check(resp, "send_card_by_id_to_chat")
+            if resp.data and resp.data.message_id:
+                return str(resp.data.message_id)
+            raise FeishuAPIError("send_card_by_id_to_chat: response missing message_id")
+
+        return await self._retry_transient("send_card_by_id_to_chat", _do)
+
     async def update_card(self, message_id: str, card: dict[str, Any]) -> None:
         """PATCH 更新已发送的卡片（IM PATCH 通道）."""
         request = (

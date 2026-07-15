@@ -145,10 +145,6 @@ def build_streaming_card_v2(
     """Card lifecycle (v1.0.2+):"""
     elements: list[dict] = []
 
-    # ── Unified panel placeholder (linear mode — single panel for reasoning+tools) ──
-    if include_unified_panel:
-        elements.append(_build_unified_panel_placeholder(expanded=streaming_panel_expanded))
-
     # ── Streaming answer element ──
     if show_streaming_element and include_answer_element:
         elements.append(_streaming_element(element_id=ANSWER_ELEMENT_ID))
@@ -159,6 +155,11 @@ def build_streaming_card_v2(
 
     # ── Loading spinner ──
     elements.append(_loading_element())
+
+    # ── Unified panel placeholder (linear mode — single panel for reasoning+tools) ──
+    # 嘟嘟定制: panel放最底部, 让answer在上面流式输出
+    if include_unified_panel:
+        elements.append(_build_unified_panel_placeholder(expanded=streaming_panel_expanded))
 
     card: dict[str, Any] = {
         "schema": "2.0",

@@ -258,6 +258,7 @@ def _wrap_run_agent(orig: Callable) -> Callable:
                     "card_sent": False,
                     "_msg_start_time": time.monotonic(),
                     "_agent_ref": None,
+                    "_agent_model": "",
                     "_interrupt_depth": _interrupt_depth,
                     "_parent_message_id": ctx.get("message_id"),  # Track parent for cleanup
                     "_original_msg_context_ref": _original_msg_context_ref,  # Propagate ref to original
@@ -548,6 +549,7 @@ def _wrap_run_background_task(orig: Callable) -> Callable:
             "card_sent": False,
             "_msg_start_time": time.monotonic(),
             "_agent_ref": None,  # Will be filled by _maybe_wrap_callbacks
+            "_agent_model": "",  # Will be filled by _maybe_wrap_callbacks
         })
         _thread_local_ctx.data = dict(_msg_ctx.get())
 

@@ -431,6 +431,13 @@ def _wrap_feishu_adapter_send_clarify(orig_send_clarify: Callable) -> Callable:
     async def _intercepted_send_clarify(
         self_feishu, chat_id, question, choices, clarify_id, session_key, metadata=None, **kwargs
     ):
+        # 🔥 v1.5.1 fix: on-demand repatch — 如果 _status_adapter 是另一个 class identity
+        # (hermes_plugins vs plugins namespace)，补丁没挂上 → 这里当场补挂
+        _cls = type(self_feishu)
+        if id(_cls) not in _patched_feishu_classes:
+            from . import _apply_feishu_adapter_patches
+            _apply_feishu_adapter_patches(_cls, is_repatch=True)
+
         _logger.info(
             "clarify card: send_clarify intercepted chat=%s question=%r choices=%s clarify_id=%s",
             (chat_id or "?")[:12],

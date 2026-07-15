@@ -17,7 +17,7 @@ _T: dict[str, tuple[str, str]] = {
     "status_stopped": ("Stopped", "已停止"),
     "elapsed": ("Elapsed {}", "耗时 {}"),
     "context": ("Context {}", "上下文 {}"),
-    "processing": ("Processing...", "处理中..."),
+    "processing": ("⚕ Hermesing…", "⚕ Hermesing…"),
     "processing_prefix": ("💭 Processing...", "💭 处理中..."),
     "thought": ("Thought", "思考"),
     "thinking_panel": ("Thinking", "思考中"),
@@ -44,9 +44,9 @@ _T: dict[str, tuple[str, str]] = {
     "cost_actual": ("${} (actual)", "${} (实报)"),
     "cost_included": ("Free", "免费"),
     # ── Unified panel i18n ──
-    "agent_process": ("agent loop", "agent loop"),
-    "rounds": ("{} rounds", "{} 轮"),
-    "tools_count": ("{} tools", "{} 个工具"),
+    "agent_process": ("💭", "💭"),
+    "rounds": ("💭{}", "💭{}"),
+    "tools_count": ("🛠️{}", "🛠️{}"),
     "round_n": ("Round {}", "第 {} 轮"),
 }
 

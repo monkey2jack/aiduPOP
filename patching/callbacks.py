@@ -9,6 +9,7 @@ from . import (
     _thread_local_ctx,
     _logger,
     _get_event_message_id,
+    _model_cache,
 )
 
 def _resolve_eid(fallback_eid: str | None) -> str | None:
@@ -21,6 +22,25 @@ def _maybe_wrap_callbacks(agent) -> None:
     Feishu CardKit updates.  Skips silently when outside a Feishu message
     context (i.e. no event_message_id in context)."""
     _logger.debug("HLS: _maybe_wrap_callbacks invoked, has_stream=%s, eid_lookup=%s", bool(getattr(agent, "stream_delta_callback", None)), bool(_get_event_message_id()))
+
+    # ── 【嘟嘟定制 v22.2 根治】模块级全局缓存 ──
+    # _model_cache 是普通 Python dict，不依赖 contextvar/thread-local/asyncio task 边界。
+    # 同一进程内任何线程/task 都能读到。升级时 grep 此标记找回所有定制点。
+    ctx = _msg_ctx.get()
+    model_val = getattr(agent, "model", None)
+    if model_val:
+        _model_cache["current"] = model_val
+        eid = (ctx.get("event_message_id") if ctx else None) or _get_event_message_id()
+        if eid:
+            if len(_model_cache) > 500:
+                for k in list(_model_cache.keys()):
+                    if k != "current":
+                        del _model_cache[k]
+            _model_cache[eid] = model_val
+    if ctx is not None:
+        ctx["_agent_ref"] = agent
+        ctx["_agent_model"] = model_val or ""
+        _thread_local_ctx.data = dict(ctx)
 
     eid = _get_event_message_id()
     if not eid:
@@ -225,9 +245,3 @@ def _maybe_wrap_callbacks(agent) -> None:
     # Mark background_review_callback wrapper (already marked above for others)
     if getattr(agent, "background_review_callback", None):
         setattr(agent.background_review_callback, "_hls_wrapper", True)
-
-    # ── Store agent reference for cache token extraction ──
-    ctx = _msg_ctx.get()
-    if ctx is not None:
-        ctx["_agent_ref"] = agent
-        _thread_local_ctx.data = dict(ctx)

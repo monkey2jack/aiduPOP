@@ -220,7 +220,7 @@ class Config:
 
     @staticmethod
     def _default_footer_fields() -> list[list[str]]:
-        return [["status", "elapsed", "model", "cost", "compression_exhausted"]]
+        return []  # 嘟嘟定制: model 移入 panel header, footer 取消
 
     @property
     def env_app_id(self) -> str:
