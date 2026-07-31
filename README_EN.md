@@ -102,13 +102,13 @@ Built on top of [Aowen-Nowor's hermes-lark-streaming](https://gitee.com/Aowen-No
 
 ---
 
-### 5. Clarify — Interactive Options (Cardsuit 2.0)
+### 5. Clarify — Interactive Options (Cardkit 2.0)
 
 <p align="center">
   <img src="assets/screenshots/05-clarify-options.png" width="600" alt="Clarify Options">
 </p>
 
-> **Native Feishu Cardsuit 2.0 integration.** When the AI needs clarification, it presents interactive option cards right in the chat. Select from dropdowns or type your answer — no context switching required.
+> **Native Feishu Cardkit 2.0 integration.** When the AI needs clarification, it presents interactive option cards right in the chat. Select from dropdowns or type your answer — no context switching required.
 
 ---
 
