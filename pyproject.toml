@@ -1,0 +1,58 @@
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "hermes-lark-streaming"
+dynamic = ["version"]
+description = "Aidu-customized Feishu/Lark CardKit v2.0 streaming cards for Hermes Agent"
+readme = "README.md"
+license = {text = "MIT"}
+requires-python = ">=3.11"
+authors = [
+    {name = "Aidu (based on Aowen-Nowor)"},
+]
+dependencies = [
+    "lark-oapi>=1.4.0",
+    "PyYAML>=6.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0",
+    "pytest-asyncio>=0.21.0",
+    "ruff>=0.1.0",
+]
+
+# The plugin code lives at the repo root (alongside plugin.yaml).
+# When loaded as a Hermes directory plugin, the plugin loader imports
+# __init__.py directly from this directory.
+# For pip installs, the repo root is mapped as "hermes_lark_streaming".
+[tool.setuptools.package-dir]
+hermes_lark_streaming = "."
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["controller*", "cardkit*", "patching*", "state*", "feishu*", "config*", "aowen*", "plugin*", "flush*"]
+
+[tool.setuptools.package-data]
+hermes_lark_streaming = ["plugin.yaml"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+# NOTE: no pythonpath needed — conftest.py registers the repo root
+# as the hermes_lark_streaming package via importlib.
+asyncio_mode = "auto"
+# Integration tests require HERMES_SRC_DIR (set by hermes-integration-test.yml).
+# Exclude from default `pytest tests/` run to avoid 25 skipped in sync-from-gitee.
+# Run explicitly: `pytest tests/integration/`
+norecursedirs = ["tests/integration"]
+filterwarnings = [
+    # lark_oapi uses deprecated datetime.utcfromtimestamp (Python 3.12+)
+    "ignore:datetime.datetime.utcfromtimestamp:DeprecationWarning",
+    # lark_oapi ws client calls asyncio.get_event_loop() at import time
+    "ignore:There is no current event loop:DeprecationWarning",
+    # v1.1.1: lark_oapi uses deprecated pkg_resources.declare_namespace
+    "ignore:pkg_resources is deprecated as an API:DeprecationWarning",
+    "ignore:Deprecated call to:DeprecationWarning",
+]

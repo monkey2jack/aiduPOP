@@ -1,0 +1,14 @@
+__pycache__/
+*.pyc
+*.egg-info/
+dist/
+build/
+.env
+*.bak
+.eggs/
+tests/samples/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.deps/
+.hermes-last-release

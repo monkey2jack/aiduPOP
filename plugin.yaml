@@ -1,0 +1,19 @@
+name: hermes-lark-streaming
+version: "1.0.0"
+description: "Aidu-customized Feishu/Lark CardKit v2.0 streaming cards for Hermes Agent — based on Aowen-Nowor/hermes-lark-streaming with enhanced model display, panel positioning, and robust error handling"
+author: Aidu (based on Aowen-Nowor)
+kind: standalone
+codename: "Crystal"
+provides_hooks:
+  - pre_gateway_dispatch
+  - on_feishu_normalize
+  - on_message_started
+  - on_message_completed
+  - on_message_aborted
+  - on_message_interrupted
+  - on_answer_delta
+  - on_thinking_delta
+  - on_reasoning_delta
+  - on_tool_updated
+  - on_background_review_message
+  - on_cron_deliver
