@@ -202,7 +202,7 @@ This project is licensed under the MIT License — see [LICENSE](LICENSE) for de
 ## 🙏 Credits
 
 - **Upstream**: [Aowen-Nowor/hermes-lark-streaming](https://gitee.com/Aowen-Nowor/hermes-lark-streaming) v1.6.0
-- **Original author**: Cheerwhy (v0.7.0, the original streaming card plugin)
+- **Original author**: Boss Aowen
 - **Framework**: [Hermes Agent](https://github.com/NousResearch/hermes-agent) by Nous Research
 - **Customization**: Aidu
 
