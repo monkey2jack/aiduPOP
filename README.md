@@ -102,13 +102,13 @@
 
 ---
 
-### 5. Clarify — 交互式选项卡（Cardsuit 2.0）
+### 5. Clarify — 交互式选项卡（Cardkit 2.0）
 
 <p align="center">
   <img src="assets/screenshots/05-clarify-options.png" width="600" alt="Clarify 选项">
 </p>
 
-> **原生飞书 Cardsuit 2.0 集成。** 当 AI 需要澄清时，直接在对话中呈现交互式选项卡。从下拉菜单选择或输入答案 — 无需切换上下文。
+> **原生飞书 Cardkit 2.0 集成。** 当 AI 需要澄清时，直接在对话中呈现交互式选项卡。从下拉菜单选择或输入答案 — 无需切换上下文。
 
 ---
 
