@@ -161,7 +161,7 @@ hermes restart
 - **⚡ 即时响应** — 没有「正在输入」提示，卡片即时出现
 - **🚦 颜色编码面板** — 绿色（完成）、红色（中止）、黄色（报错）
 - **🔍 透明追踪** — 可展开面板，显示完整推理和工具调用
-- **🧠 aiduMEM 集成** — 持久记忆消除上下文焦虑
+- **🤔 aiduMEM 集成** — 持久记忆消除上下文焦虑
 - **🃏 Cardsuit 2.0** — 原生飞书交互式 clarify 卡片
 - **🛡️ Phase 2 保护** — API 失败时自动回滚补救
 - **📊 模型显示** — 稳定的模型名称显示，不会闪烁
@@ -202,12 +202,12 @@ aiduSTR/
 ## 🙏 致谢
 
 - **上游**：[Aowen-Nowor/hermes-lark-streaming](https://gitee.com/Aowen-Nowor/hermes-lark-streaming) v1.6.0
-- **最初作者**：Cheerwhy（v0.7.0 原始流式卡片插件）
+- **作者**：敖文大佬
 - **框架**：[Hermes Agent](https://github.com/NousResearch/hermes-agent) by Nous Research
-- **定制**：Aidu
+- **定制**：aidu
 
 ---
 
 <p align="center">
-  <sub>用 💕 制作 by Aidu</sub>
+  <sub>用 💕 制作 by aidu</sub>
 </p>
