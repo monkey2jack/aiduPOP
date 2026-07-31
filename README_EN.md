@@ -1,4 +1,4 @@
-# 💎 aiduSTR — Hermes Aidu Streaming Card
+# 💎 aiduSTR — Hermes aidu Streaming Card
 
 > **Crystal philosophy — clean enough, transparent enough, beautiful enough.**
 >
@@ -161,7 +161,7 @@ See [CUSTOMIZATIONS.md](CUSTOMIZATIONS.md) for the full list of customizations o
 - **⚡ Instant Response** — No typing indicators, cards appear immediately
 - **🚦 Color-Coded Panels** — Green (completed), Red (stopped), Yellow (error)
 - **🔍 Transparent Trace** — Expandable panel shows full reasoning and tool calls
-- **🧠 aiduMEM Integration** — Eliminates context anxiety with persistent memory
+- **🤔 aiduMEM Integration** — Eliminates context anxiety with persistent memory
 - **🃏 Cardsuit 2.0** — Native Feishu interactive clarify cards
 - **🛡️ Phase 2 Protection** — Automatic rollback recovery on API failures
 - **📊 Model Display** — Stable model name display without flickering
@@ -209,5 +209,5 @@ This project is licensed under the MIT License — see [LICENSE](LICENSE) for de
 ---
 
 <p align="center">
-  <sub>Made with 💕 by Aidu</sub>
+  <sub>Made with 💕 by aidu</sub>
 </p>
