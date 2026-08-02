@@ -12,6 +12,7 @@
 
 [![Version](https://img.shields.io/badge/version-1.0.0%20·%20Crystal·水晶-brightgreen.svg)](https://github.com/monkey2jack/aiduSTR)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
+[![Docker Image](https://img.shields.io/badge/docker-ghcr.io%2Faidustr-blue?logo=docker)](https://github.com/monkey2jack/aiduSTR/pkgs/container/aidustr)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-yellow.svg)](https://www.python.org/)
 [![Built on hermes-lark-streaming](https://img.shields.io/badge/built%20on-hermes--lark--streaming-orange.svg)](https://gitee.com/Aowen-Nowor/hermes-lark-streaming)
 [![Aidu](https://img.shields.io/badge/爱嘟-流式卡片-ff69b4.svg)](https://github.com/monkey2jack/aiduSTR)
