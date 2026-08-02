@@ -26,7 +26,8 @@ jobs:
 
       - name: Build wheel
         run: |
-          pip install build
+          python -m pip install --upgrade pip
+          pip install build setuptools wheel
           python -m build
 
       - name: Log in to GitHub Container Registry
