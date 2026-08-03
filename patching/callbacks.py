@@ -24,12 +24,25 @@ def _maybe_wrap_callbacks(agent) -> None:
     context (i.e. no event_message_id in context)."""
     _logger.debug("HLS: _maybe_wrap_callbacks invoked, has_stream=%s, eid_lookup=%s", bool(getattr(agent, "stream_delta_callback", None)), bool(_get_event_message_id()))
 
-    # ── 【Aidu v22.2 根治】模块级全局缓存 ──
+    # ── 【嘟嘟定制 v22.2 根治】模块级全局缓存 ──
     # _model_cache 是普通 Python dict，不依赖 contextvar/thread-local/asyncio task 边界。
     # 同一进程内 any 线程/task 都能读到。升级时 grep 此标记找回所有定制点。
+    #
+    # 【嘟嘟定制 v22.4 修复】辅助 agent 禁止污染 _model_cache。
+    # 症状：后台复盘 fork（auxiliary.background_review 走 aux 模型）在独立线程里
+    # 调 _maybe_wrap_callbacks，拿不到 event_message_id，只写了 _model_cache["current"]。
+    # 主卡片封版渲染 panel 时若 eid 未命中，fallback 读 "current"，
+    # 就把 aux 模型名（如 Grok-4.5）印到大叔的卡片上。
+    # 判定依据：background_review.py 给 fork 打了 _memory_write_origin /
+    # _persist_disabled 标记；正常主 agent 不带这些。
     ctx = _msg_ctx.get()
     model_val = getattr(agent, "model", None)
-    if model_val:
+    _is_aux_fork = (
+        getattr(agent, "_memory_write_origin", None) == "background_review"
+        or getattr(agent, "_memory_write_context", None) == "background_review"
+        or getattr(agent, "_persist_disabled", False) is True
+    )
+    if model_val and not _is_aux_fork:
         _model_cache["current"] = model_val
         eid = (ctx.get("event_message_id") if ctx else None) or _get_event_message_id()
         if eid:
@@ -38,7 +51,11 @@ def _maybe_wrap_callbacks(agent) -> None:
                     if k != "current":
                         del _model_cache[k]
             _model_cache[eid] = model_val
-    if ctx is not None:
+    elif _is_aux_fork:
+        _logger.debug(
+            "HLS: skip _model_cache write for aux fork model=%s", model_val
+        )
+    if ctx is not None and not _is_aux_fork:
         ctx["_agent_ref"] = agent
         ctx["_agent_model"] = model_val or ""
         _thread_local_ctx.data = dict(ctx)
@@ -48,7 +65,7 @@ def _maybe_wrap_callbacks(agent) -> None:
         _logger.debug("HLS: skip — no event_message_id in ctx")
         return  # Not in a hermes-lark-streaming context — skip
 
-    # ── 【Aidu：细粒度回调包装】 ──
+    # ── 【嘟嘟定制：细粒度回调包装】 ──
     # 不再因为 "任何一个已被包装" 就整体跳过，而是每个 callback 独立按需包装，
     # 彻底解决切换模型后部分 callback 被重置导致未能包装的 Bug。
 

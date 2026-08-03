@@ -533,7 +533,7 @@ class TestDoCreateLinearCard:
 
         await ctrl._do_create_linear_card(session)
 
-        # Aidu隐藏 loading hint，只预分配 loading icon。
+        # 嘟嘟定制隐藏 loading hint，只预分配 loading icon。
         assert session.existing_elements == {_LOADING_ELEMENT_ID}
         assert "panel" not in session._creation_stages
 

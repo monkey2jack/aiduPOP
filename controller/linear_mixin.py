@@ -68,7 +68,7 @@ def _build_seal_summary(state: UnifiedLinearState | None) -> str:
 
 
 def _get_model_from_ctx() -> str | None:
-    """【Aidu v22.2 根治】获取当前 model 名，卡片 Phase 2 起可用。
+    """【嘟嘟定制 v22.2 根治】获取当前 model 名，卡片 Phase 2 起可用。
 
     优先 _model_cache（模块级 dict，进程内全局可靠），
     回退 ctx dict 里的 _agent_ref.model（同 task 内有效）。
@@ -189,12 +189,12 @@ class UnifiedControllerMixin:
                 card = build_streaming_card_v2(
                     include_unified_panel=False,   # Panel added on first token
                     include_answer_element=False,   # Answer element added with panel
-                    include_loading_hint=False,      # Aidu: 不显示 loading 提示
+                    include_loading_hint=False,      # 嘟嘟定制: 不显示 loading 提示
                     streaming_panel_expanded=self._cfg.streaming_panel_expanded,
                     print_strategy=self._cfg.print_strategy,
                     print_step=self._cfg.print_step,
                 )
-                # Aidu: send 失败时重建卡片重试（重启风暴后飞书 card 缓存失效常见）
+                # 嘟嘟定制: send 失败时重建卡片重试（重启风暴后飞书 card 缓存失效常见）
                 _SEND_MAX_RETRIES = 2
                 for _send_attempt in range(_SEND_MAX_RETRIES + 1):
                     card_id = await self._client.cardkit_create(card)
@@ -232,7 +232,7 @@ class UnifiedControllerMixin:
                 session.card_created_at = _time.time()
                 session.flush.set_throttle(self._cfg.flush_interval_sec)
 
-                # Track existing elements — 【Aidu v22.3】
+                # Track existing elements — 【嘟嘟定制 v22.3】
                 # include_loading_hint=False 时 hint 不在初始卡片中，
                 # existing_elements 不能包含不存在的元素，否则 Phase 2
                 # 会尝试 delete 不存在的 hint → 300314 → 原子回滚 →
@@ -241,7 +241,7 @@ class UnifiedControllerMixin:
                     _LOADING_ELEMENT_ID,
                 }
                 # 只有真正包含 hint 的卡片才追踪它
-                # （当前Aidu include_loading_hint=False，所以不加）
+                # （当前嘟嘟定制 include_loading_hint=False，所以不加）
                 session._creation_stages.discard("panel")  # Panel NOT in initial card
 
             except FeishuAPIError as e:
@@ -355,10 +355,10 @@ class UnifiedControllerMixin:
             new_elements: list[dict[str, Any]] = []
 
             # ── Path A & B: Always add answer streaming element FIRST ──
-            # Aidu: answer在上面流式输出
+            # 嘟嘟定制: answer在上面流式输出
             new_elements.append(_streaming_element(element_id=ANSWER_ELEMENT_ID))
 
-            # ── Always add unified panel AFTER answer (Aidu: panel放底部) ──
+            # ── Always add unified panel AFTER answer (嘟嘟定制: panel放底部) ──
             new_elements.append(_build_session_panel(
                 session,
                 state,
@@ -366,7 +366,7 @@ class UnifiedControllerMixin:
                 expanded=self._cfg.streaming_panel_expanded,
             ))
 
-            # Add new elements before loading spinner (Aidu: 用 _LOADING_ELEMENT_ID 替代 _LOADING_HINT_ELEMENT_ID)
+            # Add new elements before loading spinner (嘟嘟定制: 用 _LOADING_ELEMENT_ID 替代 _LOADING_HINT_ELEMENT_ID)
             actions.append({
                 "action": "add_elements",
                 "params": {
@@ -385,7 +385,7 @@ class UnifiedControllerMixin:
 
             # ── Execute Phase 2 batch_update ──
             if actions:
-                # Aidu始终创建 panel；tracking 必须与实际 payload 一致。
+                # 嘟嘟定制始终创建 panel；tracking 必须与实际 payload 一致。
                 _has_panel = True
                 session.sequence += 1
                 try:
@@ -711,10 +711,10 @@ class UnifiedControllerMixin:
                     card_id[:12],
                 )
 
-                # ── 【Aidu v22.3】Phase 2 回滚补救 ──
+                # ── 【嘟嘟定制 v22.3】Phase 2 回滚补救 ──
                 # 如果 answer 不在 _creation_stages（Phase 2 原子回滚了），
                 # 在 seal 里补做一次 Phase 2 创建，否则 answer/panel 元素
-                # 从未创建，用户只能看到空卡片。
+                # 从未创建，大叔只能看到空卡片。
                 if "answer" not in session._creation_stages and (state.answer_dirty or state.answer_text):
                     _logger.warning(
                         "preservative seal: answer not in _creation_stages "

@@ -11,6 +11,17 @@ Single source of truth: the `version` field in `plugin.yaml`.
 
 ---
 
+## [1.1.0 · Crystal 水晶 补丁版] — 2026-08-04
+
+### Fixed
+- **续写卡片 stats 继承** — 修复续写卡片（continuation session）`reasoning_rounds` / `_tool_count` / `panel_visible` / `_panel_events` 等统计数据归零问题；继承旧 session 全部统计与时间戳。
+- **允许续写卡片二次续写** — 修复续写卡片产生后再续写被判定为非法的 bug，最大支持 3 次连续续写。
+- **飞书 300301 卡片过期处理** — 新增对 `CARDKIT_DUPLICATE_ID=300301` 错误码的拦截与处理，防卡片过期/重复 ID 死循环。
+- **面板渲染路径统一** — `_build_session_panel()` 重构面板构建逻辑，消除流式/重试/seal 三重路径面板格式漂移。
+- **Auxiliary Fork 模型缓存隔离** — `on_background_review_message` 辅助 fork 节点隔离 `_model_cache`，防止后台复盘模型覆盖卡片显示的提问模型名。
+
+---
+
 ## [1.0.0 · Crystal 水晶] — 2026-07-31
 
 ### Initial Release — Crystal 🌟

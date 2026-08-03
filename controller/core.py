@@ -222,6 +222,32 @@ class StreamCardController(ControllerMixin, UnifiedControllerMixin):
         # v1.4.0 fix: 预先创建 unified_state + 标记 linear=True，避免 on_answer 在
         new_session.linear = True
         new_session.unified_state = UnifiedLinearState()
+
+        # ── v1.7.0 fix: 继承旧 session 的面板统计信息 ──
+        # 续写新卡不应从零开始，否则用户看到"思考0/工具0/时间0s"
+        old_state = stale_session.unified_state
+        if old_state is not None:
+            new_state = new_session.unified_state
+            # 继承 reasoning rounds（思考轮数）
+            if old_state.reasoning_rounds:
+                new_state.reasoning_rounds = list(old_state.reasoning_rounds)
+            # 继承 _tool_count（工具调用计数）
+            new_state._tool_count = old_state._tool_count
+            # 继承 panel_visible（面板可见性）
+            if old_state.panel_visible:
+                new_state.panel_visible = True
+            # 继承 panel_events（面板事件）
+            if old_state._panel_events:
+                new_state._panel_events = list(old_state._panel_events)
+            # 继承 panel_dirty（面板脏标记，确保下一次 flush 会更新）
+            if old_state.panel_dirty:
+                new_state.panel_dirty = True
+        # 继承旧 session 的工具调用追踪
+        if stale_session.tool_use._session is not None:
+            new_session.tool_use._session = stale_session.tool_use._session
+        # 继承旧 session 的创建时间（用于 elapsed time 计算）
+        new_session.created_at = stale_session.created_at
+
         self._sess_put(new_message_id, new_session)
         # 不抢 anchor_id key——原 session 仍可能用 anchor_id 作 alias key，
         # 新 session 只通过 new_message_id 索引（避免覆盖原 alias 引发误清理）。
@@ -269,11 +295,10 @@ class StreamCardController(ControllerMixin, UnifiedControllerMixin):
         # _streaming_closed=False 说明流式仍健康，正常路径处理
         if not stale._streaming_closed:
             return None
-        # 防递归：本 session 自己是 continuation session 时不再次重激活
-        if stale._is_continuation:
-            return None
-        # 限制最多重激活 1 次（极端情况：新 session 也遇到 300309 时不再重激活）
-        if stale._continuation_reactivation_count >= 1:
+        # v1.7.0 fix: 允许 continuation session 被再次重激活
+        # （续写卡也可能遇到 300309 流式关闭，需要再次开卡）
+        # 限制最多重激活 3 次（防止无限递归）
+        if stale._continuation_reactivation_count >= 3:
             return None
 
         # 3. 触发重激活

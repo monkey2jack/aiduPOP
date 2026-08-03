@@ -1,5 +1,5 @@
 name: hermes-lark-streaming
-version: "1.0.0"
+version: "1.1.0"
 description: "Aidu-customized Feishu/Lark CardKit v2.0 streaming cards for Hermes Agent — based on Aowen-Nowor/hermes-lark-streaming with enhanced model display, panel positioning, and robust error handling"
 author: Aidu (based on Aowen-Nowor)
 kind: standalone
