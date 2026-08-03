@@ -199,9 +199,20 @@ class UnifiedControllerMixin:
                 for _send_attempt in range(_SEND_MAX_RETRIES + 1):
                     card_id = await self._client.cardkit_create(card)
                     try:
-                        card_msg_id = await self._client.send_card_by_id_to_chat(
-                            session.chat_id, card_id,
-                        )
+                        reply_id = session.anchor_id or session.message_id
+                        if reply_id:
+                            try:
+                                card_msg_id = await self._client.reply_card_by_id(
+                                    reply_id, card_id,
+                                )
+                            except FeishuAPIError:
+                                card_msg_id = await self._client.send_card_by_id_to_chat(
+                                    session.chat_id, card_id,
+                                )
+                        else:
+                            card_msg_id = await self._client.send_card_by_id_to_chat(
+                                session.chat_id, card_id,
+                            )
                         break  # 发送成功
                     except FeishuAPIError as send_err:
                         # 终端错误码(消息被删/撤回)不重试，直接抛出

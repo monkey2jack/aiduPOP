@@ -11,6 +11,7 @@ from typing import Any, Callable
 from .. import __version__
 from . import (
     _msg_ctx,
+    _thread_local_ctx,
     _gateway_cards,
     _gateway_cards_lock,
     _logger,
@@ -166,9 +167,17 @@ def _wrap_feishu_adapter_send(orig_send: Callable) -> Callable:
                     return await orig_send(self_feishu, chat_id, content, reply_to=reply_to, metadata=metadata, **kwargs)
 
                 category = _classify_gateway_message(cleaned or content)
+                gateway_reply_to = reply_to
+                if not gateway_reply_to:
+                    ctx = _msg_ctx.get(None)
+                    if ctx is None:
+                        ctx = getattr(_thread_local_ctx, "data", None)
+                    if isinstance(ctx, dict):
+                        gateway_reply_to = ctx.get("anchor_id") or ctx.get("event_message_id") or ctx.get("message_id")
                 card_msg_id, card_id = await ctrl._do_gateway_deliver(
                     chat_id, cleaned.strip() if cleaned.strip() else content,
                     category=category,
+                    reply_to=gateway_reply_to,
                 )
                 if card_msg_id:
                     # Register the card so edit_message can update it later
@@ -501,15 +510,41 @@ def _wrap_feishu_adapter_send_clarify(orig_send_clarify: Callable) -> Callable:
                 _clarify_questions[clarify_id] = question
                 _clarify_timestamps[clarify_id] = time.time()
 
-            # Send the card via FeishuClient
+            # Send the card via FeishuClient. Clarify callbacks may run from
+            # the agent/worker thread, where the contextvar can be empty; fall
+            # back to _thread_local_ctx populated by gateway._wrap_run_agent.
             reply_to = None
             if metadata and isinstance(metadata, dict):
                 reply_to = metadata.get("reply_to") or metadata.get("message_id")
+            if not reply_to:
+                ctx = _msg_ctx.get(None)
+                if ctx is None:
+                    ctx = getattr(_thread_local_ctx, "data", None)
+                if isinstance(ctx, dict):
+                    reply_to = ctx.get("anchor_id") or ctx.get("event_message_id") or ctx.get("message_id")
+            if not reply_to:
+                try:
+                    for _mid, _sess in reversed(ctrl._sess_items_snapshot()):
+                        if _sess.chat_id == chat_id and not _sess.is_terminal_phase:
+                            reply_to = _sess.anchor_id or _sess.message_id
+                            break
+                except Exception:
+                    _logger.debug("clarify card: active session lookup failed", exc_info=True)
 
+            client = ctrl._client
+            assert client is not None
             if reply_to:
-                card_msg_id = await ctrl._client.reply_card(reply_to, card)
+                try:
+                    card_msg_id = await client.reply_card(reply_to, card)
+                except Exception:
+                    _logger.info(
+                        "clarify card: reply failed for msg=%s, falling back to chat send",
+                        str(reply_to)[:12],
+                        exc_info=True,
+                    )
+                    card_msg_id = await client.send_card_to_chat(chat_id, card)
             else:
-                card_msg_id = await ctrl._client.send_card_to_chat(chat_id, card)
+                card_msg_id = await client.send_card_to_chat(chat_id, card)
 
             _logger.info(
                 "clarify card: card sent successfully, clarify_id=%s card_msg_id=%s",
