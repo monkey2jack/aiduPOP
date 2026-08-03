@@ -1,7 +1,7 @@
-# Changelog — aiduSTR 💎
+# Changelog — aiduPOP 💎
 
 All notable changes to this project will be documented in this file.
-本文件记录 aiduSTR 的所有重要变更。
+本文件记录 aiduPOP 的所有重要变更。
 
 Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) · SemVer with gem codenames.
 版本号遵循语义化版本，每个大版本配一个宝石代号（Crystal 水晶 → …）。

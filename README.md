@@ -1,4 +1,4 @@
-# 💎 aiduSTR — Hermes爱嘟流式卡片
+# 💎 aiduPOP — Hermes爱嘟流式卡片
 
 > **水晶理念——够简洁，够透明，够美**
 >
@@ -10,22 +10,22 @@
 美不是装饰，而是信息该在的位置，刚好在那里。
 ```
 
-[![Version](https://img.shields.io/badge/version-1.0.0%20·%20Crystal·水晶-brightgreen.svg)](https://github.com/monkey2jack/aiduSTR)
+[![Version](https://img.shields.io/badge/version-1.0.0%20·%20Crystal·水晶-brightgreen.svg)](https://github.com/monkey2jack/aiduPOP)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
-[![Docker Image](https://img.shields.io/badge/docker-ghcr.io%2Faidustr-blue?logo=docker)](https://github.com/monkey2jack/aiduSTR/pkgs/container/aidustr)
+[![Docker Image](https://img.shields.io/badge/docker-ghcr.io%2Faidupop-blue?logo=docker)](https://github.com/monkey2jack/aiduPOP/pkgs/container/aidupop)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-yellow.svg)](https://www.python.org/)
 [![Built on hermes-lark-streaming](https://img.shields.io/badge/built%20on-hermes--lark--streaming-orange.svg)](https://gitee.com/Aowen-Nowor/hermes-lark-streaming)
-[![Aidu](https://img.shields.io/badge/爱嘟-流式卡片-ff69b4.svg)](https://github.com/monkey2jack/aiduSTR)
+[![Aidu](https://img.shields.io/badge/爱嘟-流式卡片-ff69b4.svg)](https://github.com/monkey2jack/aiduPOP)
 
 **中文** | **[📖 English](README_EN.md)**
 
 ---
 
-## aiduSTR 是什么？
+## aiduPOP 是什么？
 
-**aiduSTR**（爱嘟流式卡片 / 水晶）是 [Hermes Agent](https://github.com/NousResearch/hermes-agent) 的飞书流式卡片插件 —— 让 AI 的回答和思考过程在飞书里实时、清晰、优雅地呈现。
+**aiduPOP**（爱嘟流式卡片 / 水晶）是 [Hermes Agent](https://github.com/NousResearch/hermes-agent) 的飞书流式卡片插件 —— 让 AI 的回答和思考过程在飞书里实时、清晰、优雅地呈现。
 
-基于 [Aowen-Nowor 的 hermes-lark-streaming](https://gitee.com/Aowen-Nowor/hermes-lark-streaming) v1.6.0 构建，aiduSTR 在其之上做了一套完整的**水晶化改造**：
+基于 [Aowen-Nowor 的 hermes-lark-streaming](https://gitee.com/Aowen-Nowor/hermes-lark-streaming) v1.6.0 构建，aiduPOP 在其之上做了一套完整的**水晶化改造**：
 
 | 层级 | 做什么 | 核心特性 |
 |------|--------|----------|
@@ -44,7 +44,7 @@
 
 ```
 ┌──────────────────────────────────────────────────┐
-│      💎 aiduSTR — Hermes爱嘟流式卡片             │
+│      💎 aiduPOP — Hermes爱嘟流式卡片             │
 │         Feishu Cardsuit 2.0 Streaming            │
 ├──────────────────────────────────────────────────┤
 │  cardkit/     → 卡片渲染引擎（元素、模板）        │
@@ -135,10 +135,10 @@
 
 ```bash
 # 克隆仓库
-git clone https://github.com/monkey2jack/aiduSTR.git
+git clone https://github.com/monkey2jack/aiduPOP.git
 
 # 复制到 Hermes 插件目录
-cp -r aiduSTR ~/.hermes/plugins/hermes-lark-streaming
+cp -r aiduPOP ~/.hermes/plugins/hermes-lark-streaming
 
 # 重启 Hermes Agent
 hermes restart
@@ -172,7 +172,7 @@ hermes restart
 ## 📦 项目结构
 
 ```
-aiduSTR/
+aiduPOP/
 ├── cardkit/           # 卡片渲染引擎
 ├── controller/        # 线性控制器 & card_id 追踪
 ├── patching/          # 爱嘟定制（模型显示、Phase 2）

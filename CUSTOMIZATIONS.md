@@ -1,4 +1,4 @@
-# Customizations — aiduSTR v1.0.0 Crystal
+# Customizations — aiduPOP v1.0.0 Crystal
 
 This document details all customizations applied on top of [Aowen-Nowor/hermes-lark-streaming](https://gitee.com/Aowen-Nowor/hermes-lark-streaming) v1.6.0.
 

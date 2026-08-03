@@ -30,7 +30,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ghcr.io/monkey2jack/aidustr
+          images: ghcr.io/monkey2jack/aidupop
           tags: |
             type=semver,pattern={{version}}
             type=raw,value=latest,enable=true

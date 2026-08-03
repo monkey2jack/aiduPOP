@@ -1,4 +1,4 @@
-# 💎 aiduSTR — Hermes aidu Streaming Card
+# 💎 aiduPOP — Hermes aidu Streaming Card
 
 > **Crystal philosophy — clean enough, transparent enough, beautiful enough.**
 >
@@ -10,22 +10,22 @@ Transparent is not dumping logs, but letting you see what the AI is thinking at 
 Beautiful is not decoration, but the right information being exactly where it belongs.
 ```
 
-[![Version](https://img.shields.io/badge/version-1.0.0%20·%20Crystal-brightgreen.svg)](https://github.com/monkey2jack/aiduSTR)
+[![Version](https://img.shields.io/badge/version-1.0.0%20·%20Crystal-brightgreen.svg)](https://github.com/monkey2jack/aiduPOP)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
-[![Docker Image](https://img.shields.io/badge/docker-ghcr.io%2Faidustr-blue?logo=docker)](https://github.com/monkey2jack/aiduSTR/pkgs/container/aidustr)
+[![Docker Image](https://img.shields.io/badge/docker-ghcr.io%2Faidupop-blue?logo=docker)](https://github.com/monkey2jack/aiduPOP/pkgs/container/aidupop)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-yellow.svg)](https://www.python.org/)
 [![Built on hermes-lark-streaming](https://img.shields.io/badge/built%20on-hermes--lark--streaming-orange.svg)](https://gitee.com/Aowen-Nowor/hermes-lark-streaming)
-[![Aidu](https://img.shields.io/badge/Aidu-Streaming%20Card-ff69b4.svg)](https://github.com/monkey2jack/aiduSTR)
+[![Aidu](https://img.shields.io/badge/Aidu-Streaming%20Card-ff69b4.svg)](https://github.com/monkey2jack/aiduPOP)
 
 **[📖 中文文档](README.md)** | **English**
 
 ---
 
-## What is aiduSTR?
+## What is aiduPOP?
 
-**aiduSTR** (Aidu Streaming Card / Crystal) is a streaming card plugin for [Hermes Agent](https://github.com/NousResearch/hermes-agent) on Feishu/Lark — rendering the AI's answer and reasoning process in real time, clearly and elegantly.
+**aiduPOP** (Aidu Streaming Card / Crystal) is a streaming card plugin for [Hermes Agent](https://github.com/NousResearch/hermes-agent) on Feishu/Lark — rendering the AI's answer and reasoning process in real time, clearly and elegantly.
 
-Built on top of [Aowen-Nowor's hermes-lark-streaming](https://gitee.com/Aowen-Nowor/hermes-lark-streaming) v1.6.0, aiduSTR adds a complete **crystallization** layer:
+Built on top of [Aowen-Nowor's hermes-lark-streaming](https://gitee.com/Aowen-Nowor/hermes-lark-streaming) v1.6.0, aiduPOP adds a complete **crystallization** layer:
 
 | Layer | What it does | Key feature |
 |-------|-------------|-------------|
@@ -44,7 +44,7 @@ Built on top of [Aowen-Nowor's hermes-lark-streaming](https://gitee.com/Aowen-No
 
 ```
 ┌──────────────────────────────────────────────────┐
-│    💎 aiduSTR — Hermes Aidu Streaming Card       │
+│    💎 aiduPOP — Hermes Aidu Streaming Card       │
 │         Feishu Cardsuit 2.0 Streaming            │
 ├──────────────────────────────────────────────────┤
 │  cardkit/     → Card rendering engine             │
@@ -135,10 +135,10 @@ Built on top of [Aowen-Nowor's hermes-lark-streaming](https://gitee.com/Aowen-No
 
 ```bash
 # Clone the repository
-git clone https://github.com/monkey2jack/aiduSTR.git
+git clone https://github.com/monkey2jack/aiduPOP.git
 
 # Copy to the Hermes plugins directory
-cp -r aiduSTR ~/.hermes/plugins/hermes-lark-streaming
+cp -r aiduPOP ~/.hermes/plugins/hermes-lark-streaming
 
 # Restart Hermes Agent
 hermes restart
@@ -172,7 +172,7 @@ See [CUSTOMIZATIONS.md](CUSTOMIZATIONS.md) for the full list of customizations o
 ## 📦 Project Structure
 
 ```
-aiduSTR/
+aiduPOP/
 ├── cardkit/           # Card rendering engine
 ├── controller/        # Linear controller & card_id tracking
 ├── patching/          # Aidu customizations (model display, Phase 2)

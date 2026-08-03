@@ -1,6 +1,6 @@
 # 贡献指南 / Contributing
 
-感谢你对 aiduSTR 的兴趣！/ Thanks for your interest in aiduSTR!
+感谢你对 aiduPOP 的兴趣！/ Thanks for your interest in aiduPOP!
 
 ---
 
@@ -8,7 +8,7 @@
 
 ### 提 Issue
 
-- **Bug**：请附上 Hermes Agent 版本、aiduSTR 版本（`plugin.yaml` 的 `version`）、飞书卡片报错码（如 300314）和可复现步骤。
+- **Bug**：请附上 Hermes Agent 版本、aiduPOP 版本（`plugin.yaml` 的 `version`）、飞书卡片报错码（如 300314）和可复现步骤。
 - **功能建议**：说明使用场景，而不只是实现方式。
 
 ### 提 PR
@@ -35,7 +35,7 @@ grep -rn --exclude-dir=.git -iE 'app_secret|sk-|ou_[a-z0-9]{8}|oc_[a-z0-9]{8}' .
 
 ### 上游关系
 
-aiduSTR 基于 [hermes-lark-streaming](https://gitee.com/Aowen-Nowor/hermes-lark-streaming)。通用性修复请一并反馈上游；爱嘟专属定制留在本仓库并记入 `CUSTOMIZATIONS.md`。
+aiduPOP 基于 [hermes-lark-streaming](https://gitee.com/Aowen-Nowor/hermes-lark-streaming)。通用性修复请一并反馈上游；爱嘟专属定制留在本仓库并记入 `CUSTOMIZATIONS.md`。
 
 ---
 
@@ -43,7 +43,7 @@ aiduSTR 基于 [hermes-lark-streaming](https://gitee.com/Aowen-Nowor/hermes-lark
 
 ### Filing Issues
 
-- **Bugs**: include Hermes Agent version, aiduSTR version (`version` in `plugin.yaml`), the Feishu card error code (e.g. 300314), and reproduction steps.
+- **Bugs**: include Hermes Agent version, aiduPOP version (`version` in `plugin.yaml`), the Feishu card error code (e.g. 300314), and reproduction steps.
 - **Feature requests**: describe the use case, not just the implementation.
 
 ### Pull Requests
@@ -70,7 +70,7 @@ grep -rn --exclude-dir=.git -iE 'app_secret|sk-|ou_[a-z0-9]{8}|oc_[a-z0-9]{8}' .
 
 ### Relationship with Upstream
 
-aiduSTR builds on [hermes-lark-streaming](https://gitee.com/Aowen-Nowor/hermes-lark-streaming). Please send generic fixes upstream as well; Aidu-specific customizations stay here and are documented in `CUSTOMIZATIONS.md`.
+aiduPOP builds on [hermes-lark-streaming](https://gitee.com/Aowen-Nowor/hermes-lark-streaming). Please send generic fixes upstream as well; Aidu-specific customizations stay here and are documented in `CUSTOMIZATIONS.md`.
 
 ---
 
