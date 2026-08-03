@@ -68,6 +68,7 @@ class ControllerMixin:
         content: str,
         *,
         category: str = "",
+        reply_to: str | None = None,
     ) -> tuple[str | None, str | None]:
         """Send a gateway-internal message as a card."""
         try:
@@ -77,8 +78,18 @@ class ControllerMixin:
                 content,
                 category=category,
             )
-            # Use send_card_to_chat which returns card_msg_id
-            card_msg_id = await self._client.send_card_to_chat(chat_id, card)
+            if reply_to:
+                try:
+                    card_msg_id = await self._client.reply_card(reply_to, card)
+                except Exception:
+                    _logger.info(
+                        "gateway card reply failed for msg=%s, falling back to chat send",
+                        str(reply_to)[:12],
+                        exc_info=True,
+                    )
+                    card_msg_id = await self._client.send_card_to_chat(chat_id, card)
+            else:
+                card_msg_id = await self._client.send_card_to_chat(chat_id, card)
             _logger.info(
                 "gateway card delivered: chat=%s category=%s card_msg_id=%s "
                 "content_len=%d",

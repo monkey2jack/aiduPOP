@@ -365,11 +365,13 @@ class TestWrapFeishuAdapterSendClarify:
 
         mock_client = AsyncMock()
         mock_client.send_card_to_chat = AsyncMock(return_value="msg_123")
+        mock_client.reply_card = AsyncMock(return_value="msg_reply")
 
         mock_ctrl = MagicMock()
         mock_ctrl.enabled = True
         mock_ctrl._client_ok.return_value = True
         mock_ctrl._client = mock_client
+        mock_ctrl._sess_items_snapshot.return_value = []
 
         # Clean up any previous test data
         _clarify_choices.pop("test_clarify_id", None)
@@ -398,6 +400,79 @@ class TestWrapFeishuAdapterSendClarify:
         # Cleanup
         _clarify_choices.pop("test_clarify_id", None)
         _clarify_questions.pop("test_clarify_id", None)
+
+    def test_send_clarify_replies_to_metadata_reply_to(self) -> None:
+        """Clarify card should reply when metadata provides a reply target."""
+        from hermes_lark_streaming.patching import _wrap_feishu_adapter_send_clarify
+
+        orig = AsyncMock()
+        wrapped = _wrap_feishu_adapter_send_clarify(orig)
+
+        mock_client = AsyncMock()
+        mock_client.reply_card = AsyncMock(return_value="msg_reply")
+        mock_client.send_card_to_chat = AsyncMock(return_value="msg_send")
+
+        mock_ctrl = MagicMock()
+        mock_ctrl.enabled = True
+        mock_ctrl._client_ok.return_value = True
+        mock_ctrl._client = mock_client
+        mock_ctrl._sess_items_snapshot.return_value = []
+
+        with (
+            patch("hermes_lark_streaming.controller.get_controller", return_value=mock_ctrl),
+            patch("hermes_lark_streaming.patching._register_gateway_card"),
+        ):
+            import asyncio
+            asyncio.get_event_loop().run_until_complete(
+                wrapped(
+                    MagicMock(), "chat_123", "Question?", ["A", "B"],
+                    "clarify_reply_id", "session_1",
+                    metadata={"reply_to": "om_anchor"},
+                )
+            )
+
+        mock_client.reply_card.assert_called_once()
+        assert mock_client.reply_card.call_args.args[0] == "om_anchor"
+        mock_client.send_card_to_chat.assert_not_called()
+
+    def test_send_clarify_replies_to_active_session_when_no_metadata(self) -> None:
+        """Clarify card should fall back to the active streaming session message."""
+        from hermes_lark_streaming.patching import _wrap_feishu_adapter_send_clarify
+
+        orig = AsyncMock()
+        wrapped = _wrap_feishu_adapter_send_clarify(orig)
+
+        mock_client = AsyncMock()
+        mock_client.reply_card = AsyncMock(return_value="msg_reply")
+        mock_client.send_card_to_chat = AsyncMock(return_value="msg_send")
+
+        mock_session = MagicMock()
+        mock_session.chat_id = "chat_123"
+        mock_session.is_terminal_phase = False
+        mock_session.anchor_id = None
+        mock_session.message_id = "om_active"
+
+        mock_ctrl = MagicMock()
+        mock_ctrl.enabled = True
+        mock_ctrl._client_ok.return_value = True
+        mock_ctrl._client = mock_client
+        mock_ctrl._sess_items_snapshot.return_value = [("om_active", mock_session)]
+
+        with (
+            patch("hermes_lark_streaming.controller.get_controller", return_value=mock_ctrl),
+            patch("hermes_lark_streaming.patching._register_gateway_card"),
+        ):
+            import asyncio
+            asyncio.get_event_loop().run_until_complete(
+                wrapped(
+                    MagicMock(), "chat_123", "Question?", ["A", "B"],
+                    "clarify_active_id", "session_1",
+                )
+            )
+
+        mock_client.reply_card.assert_called_once()
+        assert mock_client.reply_card.call_args.args[0] == "om_active"
+        mock_client.send_card_to_chat.assert_not_called()
 
 
 class TestWrapHandleCardActionEventV142:

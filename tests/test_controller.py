@@ -317,12 +317,8 @@ def _setup_ctrl(*, linear: bool = False) -> StreamCardController:
 
 
 @pytest.mark.asyncio
-async def test_create_linear_card_sends_independent_card() -> None:
-    """Customized card creation sends an independent chat card.
-
-    ``anchor_id`` remains session metadata, but must not turn the response
-    into a threaded reply.
-    """
+async def test_create_linear_card_replies_to_anchor_when_available() -> None:
+    """Linear card creation should prefer replying to the anchor message."""
     ctrl = _setup_ctrl(linear=True)
     session = _make_session("msg", linear=True)
     session.anchor_id = "quoted"
@@ -330,10 +326,38 @@ async def test_create_linear_card_sends_independent_card() -> None:
 
     await ctrl._do_create_linear_card(session)
 
+    ctrl._client.reply_card_by_id.assert_called_once_with("quoted", "card_id_abc")
+    ctrl._client.send_card_by_id_to_chat.assert_not_called()
+
+
+@pytest.mark.asyncio
+async def test_create_linear_card_falls_back_to_chat_send_when_anchor_reply_fails() -> None:
+    """If replying to the anchor fails, fall back to an independent chat card."""
+    ctrl = _setup_ctrl(linear=True)
+    ctrl._client.reply_card_by_id.side_effect = FeishuAPIError("reply failed")
+    session = _make_session("msg", linear=True)
+    session.anchor_id = "quoted"
+    ctrl._sessions["msg"] = session
+
+    await ctrl._do_create_linear_card(session)
+
+    ctrl._client.reply_card_by_id.assert_called_once_with("quoted", "card_id_abc")
     ctrl._client.send_card_by_id_to_chat.assert_called_once_with(
         "chat_456", "card_id_abc"
     )
-    ctrl._client.reply_card_by_id.assert_not_called()
+
+
+@pytest.mark.asyncio
+async def test_create_linear_card_replies_to_session_message_when_no_anchor() -> None:
+    """Without an explicit anchor, reply to the incoming message itself."""
+    ctrl = _setup_ctrl(linear=True)
+    session = _make_session("msg", linear=True)
+    ctrl._sessions["msg"] = session
+
+    await ctrl._do_create_linear_card(session)
+
+    ctrl._client.reply_card_by_id.assert_called_once_with("msg", "card_id_abc")
+    ctrl._client.send_card_by_id_to_chat.assert_not_called()
 
 
 def _capture_split_calls(
