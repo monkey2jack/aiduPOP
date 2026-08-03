@@ -11,6 +11,13 @@ Single source of truth: the `version` field in `plugin.yaml`.
 
 ---
 
+## [1.1.1 · Crystal 水晶 社区补丁版] — 2026-08-04
+
+### Added / Fixed
+- **飞书卡片优先回复原话题** — 感谢社区贡献者 @lyhyly (PR #2)。在发送卡片时，若存在提问消息 ID / 锚点消息，优先使用 `reply_card_by_id` 在原话题树下回复卡片；遇到异常时自动平滑降级至群聊独立发送。
+
+---
+
 ## [1.1.0 · Crystal 水晶 补丁版] — 2026-08-04
 
 ### Fixed
