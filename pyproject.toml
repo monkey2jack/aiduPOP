@@ -3,19 +3,35 @@ requires = ["setuptools>=68.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "hermes-lark-streaming"
+name = "aidupop"
 dynamic = ["version"]
-description = "Aidu-customized Feishu/Lark CardKit v2.0 streaming cards for Hermes Agent"
+description = "Hermes aiduPOP: Aidu-customized Feishu/Lark CardKit v2.0 real-time streaming cards for Hermes Agent"
 readme = "README.md"
 license = {text = "MIT"}
 requires-python = ">=3.11"
 authors = [
-    {name = "Aidu (based on Aowen-Nowor)"},
+    {name = "Jack & Dudu (aiduHER)", email = "iamjw9@gmail.com"},
+]
+keywords = ["feishu", "lark", "hermes", "aiduPOP", "streaming", "cardkit", "ai", "chatbot"]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Communications :: Chat",
 ]
 dependencies = [
     "lark-oapi>=1.4.0",
     "PyYAML>=6.0",
 ]
+
+[project.urls]
+Homepage = "https://github.com/monkey2jack/aiduPOP"
+Documentation = "https://github.com/monkey2jack/aiduPOP#readme"
+Repository = "https://github.com/monkey2jack/aiduPOP.git"
+Changelog = "https://github.com/monkey2jack/aiduPOP/blob/main/CHANGELOG.md"
 
 [project.optional-dependencies]
 dev = [

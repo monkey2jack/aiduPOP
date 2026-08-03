@@ -11,6 +11,7 @@
 ```
 
 [![Version](https://img.shields.io/badge/version-1.0.0%20·%20Crystal·水晶-brightgreen.svg)](https://github.com/monkey2jack/aiduPOP)
+[![PyPI](https://img.shields.io/pypi/v/aidupop.svg)](https://pypi.org/project/aidupop/)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Docker Image](https://img.shields.io/badge/docker-ghcr.io%2Faidupop-blue?logo=docker)](https://github.com/monkey2jack/aiduPOP/pkgs/container/aidupop)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-yellow.svg)](https://www.python.org/)
@@ -134,7 +135,10 @@
 ### 安装
 
 ```bash
-# 克隆仓库
+# 方式一：从 PyPI 安装
+pip install aidupop
+
+# 方式二：克隆仓库
 git clone https://github.com/monkey2jack/aiduPOP.git
 
 # 复制到 Hermes 插件目录

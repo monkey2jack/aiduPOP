@@ -11,6 +11,7 @@ Beautiful is not decoration, but the right information being exactly where it be
 ```
 
 [![Version](https://img.shields.io/badge/version-1.0.0%20·%20Crystal-brightgreen.svg)](https://github.com/monkey2jack/aiduPOP)
+[![PyPI](https://img.shields.io/pypi/v/aidupop.svg)](https://pypi.org/project/aidupop/)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Docker Image](https://img.shields.io/badge/docker-ghcr.io%2Faidupop-blue?logo=docker)](https://github.com/monkey2jack/aiduPOP/pkgs/container/aidupop)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-yellow.svg)](https://www.python.org/)
