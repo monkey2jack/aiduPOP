@@ -96,6 +96,33 @@ def test_on_interrupted_uses_new_message_id_and_anchor_alias() -> None:
     assert ctrl._sessions["old"].state == ABORTED
 
 
+def test_anchor_alias_does_not_inflate_active_session_count() -> None:
+    ctrl = StreamCardController()
+    _enable(ctrl)
+
+    with patch.object(ctrl, "_fire_and_forget", side_effect=lambda coro, loop: coro.close()):
+        ctrl.on_message_started(message_id="msg", chat_id="chat", anchor_id="anchor")
+
+    assert ctrl._sessions["msg"] is ctrl._sessions["anchor"]
+    assert ctrl._sess_active_count() == 1
+    assert len(ctrl._sess_values_snapshot()) == 1
+    assert ctrl._sess_canonical_items_snapshot() == [("msg", ctrl._sessions["msg"])]
+
+
+def test_on_message_started_does_not_interrupt_unrelated_anchor_in_same_chat() -> None:
+    ctrl = StreamCardController()
+    _enable(ctrl)
+
+    with patch.object(ctrl, "_fire_and_forget", side_effect=lambda coro, loop: coro.close()):
+        ctrl.on_message_started(message_id="msg_a", chat_id="chat", anchor_id="topic_a")
+        ctrl._sessions["msg_a"].state = STREAMING
+        ctrl.on_message_started(message_id="msg_b", chat_id="chat", anchor_id="topic_b")
+
+    assert ctrl._sessions["msg_a"].state == STREAMING
+    assert "msg_a" not in ctrl._interrupt_map
+    assert "msg_b" in ctrl._sessions
+
+
 def test_on_interrupted_skips_abort_for_completing_session() -> None:
     """Hotfix: COMPLETING session should not be aborted on interrupt.
 

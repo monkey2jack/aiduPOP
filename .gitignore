@@ -11,4 +11,5 @@ tests/samples/
 .mypy_cache/
 .ruff_cache/
 .deps/
+.venv/
 .hermes-last-release

@@ -417,7 +417,8 @@ class TestWrapHandleCardActionEventV142:
     本测试验证 _wrap_handle_card_action_event:
     - clarify action → 复用 _handle_clarify_card_action, 不调用原生 (不生成 /card)
     - 未知 action → 抑制 (不调用原生, 不生成 /card)
-    - original_method 永不被调用 (所有 action 都被拦截)
+    - unknown action still suppresses original_method to avoid rejected /card
+    - clarify action without live plugin state falls back to original_method
     """
 
     def test_wrapper_is_callable(self) -> None:
@@ -520,15 +521,15 @@ class TestWrapHandleCardActionEventV142:
             _clarify_choices.pop("v142_cid", None)
 
     @pytest.mark.asyncio
-    async def test_clarify_action_exception_does_not_fall_through_to_native(self) -> None:
-        """v1.4.2: clarify handler 抛异常时也不放行给原生 (不生成 /card)."""
+    async def test_clarify_action_without_live_state_falls_back_to_original(self) -> None:
+        """Clarify callbacks from stale cards should not be silently swallowed."""
         from hermes_lark_streaming.patching import _wrap_handle_card_action_event
 
-        original = MagicMock(return_value=None)
+        original = AsyncMock(return_value="native_result")
         wrapped = _wrap_handle_card_action_event(original)
 
         mock_action = MagicMock()
-        mock_action.value = {"hermes_clarify_action": "select", "clarify_id": "bad_cid"}
+        mock_action.value = {"hermes_clarify_action": "select", "clarify_id": "missing_cid"}
         mock_action.option = "0"
 
         mock_event = MagicMock()
@@ -539,19 +540,10 @@ class TestWrapHandleCardActionEventV142:
         mock_data = MagicMock()
         mock_data.event = mock_event
 
-        mock_adapter = MagicMock()
-        mock_adapter._is_interactive_operator_authorized.return_value = True
-        mock_adapter._loop = None
+        result = await wrapped(MagicMock(), mock_data)
 
-        # _handle_clarify_card_action will be called; it may succeed or fail.
-        # Either way, original (native) must NOT be called.
-        with patch.dict("sys.modules", {
-            "tools": MagicMock(),
-            "tools.clarify_gateway": MagicMock(),
-        }):
-            await wrapped(mock_adapter, mock_data)
-
-        original.assert_not_called()
+        assert result == "native_result"
+        original.assert_awaited_once()
 
 
 class TestStaleBoundMethodSimulation:

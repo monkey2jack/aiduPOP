@@ -577,6 +577,24 @@ def _wrap_handle_card_action_event(original_method: Callable) -> Callable:
         if clarify_action:
             # didn't run (SDK holds stale bound method). Handle clarify resolution
             _cid = action_value.get("clarify_id", "") if isinstance(action_value, dict) else ""
+            with _clarify_lock:
+                _known_clarify = bool(
+                    _cid
+                    and (
+                        _cid in _clarify_questions
+                        or _cid in _clarify_choices
+                        or _cid in _clarify_selections
+                        or _cid in _clarify_card_msg_ids
+                    )
+                )
+            if not _known_clarify:
+                _logger.warning(
+                    "HLS: clarify card action %r has no live plugin state; "
+                    "falling back to original Feishu card action handler, clarify_id=%s",
+                    clarify_action,
+                    (_cid or "?")[:12],
+                )
+                return await original_method(self, data)
             _logger.info(
                 "HLS: clarify card action %r reached _handle_card_action_event "
                 "(SDK stale bound method path — _on_card_action_trigger wrapper "
@@ -585,15 +603,15 @@ def _wrap_handle_card_action_event(original_method: Callable) -> Callable:
                 (_cid or "?")[:12],
             )
             try:
-                _handle_clarify_card_action(self, data, clarify_action, action_value)
+                return _handle_clarify_card_action(self, data, clarify_action, action_value)
             except Exception:
                 _logger.warning(
                     "HLS: clarify card action handling in _handle_card_action_event "
-                    "failed — clarify_id=%s",
+                    "failed; falling back to original handler, clarify_id=%s",
                     (_cid or "?")[:12],
                     exc_info=True,
                 )
-            return  # suppress /card synthetic command generation
+                return await original_method(self, data)
 
         # which Gateway rejects ("Unknown command /card"). Note: hermes_action /
         try:

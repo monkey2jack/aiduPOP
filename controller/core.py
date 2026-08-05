@@ -79,15 +79,54 @@ class StreamCardController(ControllerMixin, UnifiedControllerMixin):
         with self._sessions_lock:
             return list(self._sessions.items())
 
+    def _sess_canonical_items_snapshot(self) -> list[tuple[str, CardSession]]:
+        """Thread-safe snapshot of canonical sessions only.
+
+        ``anchor_id`` is stored as a lookup alias for reply routing, but it must
+        not behave like a second active session. Returning each CardSession once
+        prevents alias entries from inflating active counts, duplicate pruning,
+        and chat-level concurrency sealing.
+        """
+        with self._sessions_lock:
+            seen: set[int] = set()
+            items: list[tuple[str, CardSession]] = []
+            for key, session in self._sessions.items():
+                sid = id(session)
+                if sid in seen:
+                    continue
+                seen.add(sid)
+                canonical_key = getattr(session, "message_id", None) or key
+                items.append((canonical_key, session))
+            return items
+
     def _sess_values_snapshot(self) -> list[CardSession]:
         """Thread-safe snapshot of all sessions (values only)."""
         with self._sessions_lock:
-            return list(self._sessions.values())
+            seen: set[int] = set()
+            values: list[CardSession] = []
+            for session in self._sessions.values():
+                sid = id(session)
+                if sid in seen:
+                    continue
+                seen.add(sid)
+                values.append(session)
+            return values
 
     def _sess_active_count(self) -> int:
         """Thread-safe count of non-terminal (active) sessions."""
-        with self._sessions_lock:
-            return sum(1 for s in self._sessions.values() if not s.is_terminal_phase)
+        return sum(1 for s in self._sess_values_snapshot() if not s.is_terminal_phase)
+
+    @staticmethod
+    def _session_reply_anchor(session: CardSession) -> str:
+        return session.anchor_id or session.message_id or ""
+
+    @staticmethod
+    def _same_reply_anchor(session: CardSession, anchor_id: str | None, message_id: str | None) -> bool:
+        existing_anchor = session.anchor_id or ""
+        incoming_anchor = anchor_id or ""
+        if existing_anchor and incoming_anchor:
+            return existing_anchor == incoming_anchor
+        return True
 
     def _sess_clear(self) -> None:
         """Thread-safe clear of all sessions (used by unregister)."""
@@ -345,12 +384,23 @@ class StreamCardController(ControllerMixin, UnifiedControllerMixin):
 
         # v1.3.6 fix: 用 seen set 跟踪已处理的 session 对象，防止同一 session
         seen_sessions: set[int] = set()
-        for existing_msg_id, existing_session in self._sess_items_snapshot():
+        for existing_msg_id, existing_session in self._sess_canonical_items_snapshot():
             if existing_session.chat_id != chat_id:
                 continue
             if existing_session.is_terminal_phase:
                 continue
             if existing_msg_id == message_id:
+                continue
+            if not self._same_reply_anchor(existing_session, anchor_id, message_id):
+                _logger.info(
+                    "HLS: concurrency seal skipped unrelated active card "
+                    "msg=%s anchor=%s new_msg=%s new_anchor=%s chat=%s",
+                    existing_msg_id[:12],
+                    self._session_reply_anchor(existing_session)[:12],
+                    message_id[:12],
+                    (anchor_id or message_id or "")[:12],
+                    chat_id[:12],
+                )
                 continue
             if id(existing_session) in seen_sessions:
                 continue
@@ -998,7 +1048,7 @@ class StreamCardController(ControllerMixin, UnifiedControllerMixin):
         now = time.time()
         # v1.3.0 P1-05: show longer msg_id in prune logs for easier log correlation.
         # v1.3.0 P1-01: use thread-safe snapshot to avoid RuntimeError.
-        for mid, s in self._sess_items_snapshot():
+        for mid, s in self._sess_canonical_items_snapshot():
             if mid is None or now - s.created_at <= self._session_ttl:
                 continue
             if s.is_terminal_phase:
