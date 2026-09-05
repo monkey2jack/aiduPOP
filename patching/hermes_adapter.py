@@ -52,7 +52,7 @@ class HermesCompat:
         for _name, _mod in list(sys.modules.items()):
             if _mod is None:
                 continue
-            if _name == "gateway.run" or _name.endswith(".gateway.run"):
+            if _name in ("gateway.run", "gateway.run_inbound", "gateway.run_turn") or _name.endswith(".gateway.run"):
                 _cls = getattr(_mod, "GatewayRunner", None)
                 if _cls is not None:
                     self.gateway_runner_class = _cls
