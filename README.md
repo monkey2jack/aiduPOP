@@ -135,6 +135,9 @@
 
 ### 前置要求
 
+> 💡 **宿主适配提示（2026-09-05）**：全面适配 Hermes Agent September 2026 拆解重构架构（PR #102117），支持双轨原生直通探测，956 项自动化测试全绿通过。
+
+
 - [Hermes Agent](https://github.com/NousResearch/hermes-agent) 已安装
 - 飞书（Lark）机器人已配置
 - Python 3.11+
