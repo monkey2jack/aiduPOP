@@ -71,7 +71,7 @@ Beautiful is not decoration, but the right information being exactly where it be
   <img src="assets/screenshots/01-instant-response.png" width="600" alt="Instant Response">
 </p>
 
-> **No typing indicators. No "replying to…" patches.** The streaming card appears instantly — you see the response forming in real time from the very first token. No Feishu UI noise, just pure conversation.
+> **No typing indicators. No "replying to…" patches.** The streaming card appears instantly — you see the response forming in real time from the very first token, featuring an out-of-the-box mechanical typewriter effect (`print_step=1`, `print_frequency_ms=15`). No Feishu UI noise, just pure conversation.
 
 ---
 

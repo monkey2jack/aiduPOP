@@ -212,9 +212,9 @@ class Config:
 
     @property
     def print_step(self) -> int:
-        """飞书打字机每次渲染字符数. 默认 4, 范围 1~10."""
+        """飞书打字机每次渲染字符数. 默认 1（打印机逐字效果）, 范围 1~10."""
         sec = self._plugin_sec()
-        val = _to_int(sec.get("print_step", 4), default=4)
+        val = _to_int(sec.get("print_step", 1), default=1)
         return max(1, min(10, val))
 
     @property

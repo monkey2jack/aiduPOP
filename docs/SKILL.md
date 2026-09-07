@@ -232,9 +232,9 @@ v1.5.0 删除 IM 降级路径（生产从未触发）。CardKit v2 创建失败�
 hermes_lark_streaming:
   panel_expanded: false
   streaming_panel_expanded: false
-  print_strategy: delay            # "fast" 或 "delay"
-  print_step: 4                    # 打字机每次渲染字符数（默认4，范围1~10，需飞书7.23+）
-  flush_interval_ms: 200           # 插件发送间隔（默认200ms）
+  print_strategy: fast             # "fast" 极速打字机 或 "delay"
+  print_step: 1                    # 打字机每次渲染字符数（默认1，机械打字机逐字输出；范围1~10，需飞书7.23+）
+  flush_interval_ms: 70            # 插件发送间隔（推荐70ms，对齐打字机刷新率）
   card_ttl_sec: 600
   max_tool_steps: 20               # 范围 1~100
   max_reasoning_rounds: 20         # 范围 1~100

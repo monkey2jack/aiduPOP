@@ -165,7 +165,7 @@ def build_streaming_card_v2(
     show_streaming_element: bool = True,
     streaming_panel_expanded: bool = True,
     print_strategy: str = "delay",
-    print_step: int = 4,
+    print_step: int = 1,
     include_unified_panel: bool = True,
     include_loading_hint: bool = True,
     include_answer_element: bool = True,
@@ -197,7 +197,7 @@ def build_streaming_card_v2(
     config: dict[str, Any] = {
         "streaming_mode": True,
         "streaming_config": {
-            "print_frequency_ms": {"default": 70},
+            "print_frequency_ms": {"default": 15},
             "print_step": {"default": print_step},
             "print_strategy": print_strategy,
         },

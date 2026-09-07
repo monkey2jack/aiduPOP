@@ -469,7 +469,7 @@ class TestPrintStep:
 
     def test_default(self) -> None:
         cfg = _make_config({"hermes_lark_streaming": {}})
-        assert cfg.print_step == 4
+        assert cfg.print_step == 1
 
     def test_custom(self) -> None:
         cfg = _make_config({"hermes_lark_streaming": {"print_step": 2}})
@@ -485,7 +485,7 @@ class TestPrintStep:
 
     def test_no_section(self) -> None:
         cfg = _make_config({})
-        assert cfg.print_step == 4
+        assert cfg.print_step == 1
 
 
 # ── v1.5.0: config backward compat (stale header.enabled) ──
