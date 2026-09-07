@@ -41,12 +41,12 @@ BUBBLE_WAVE: dict[str, Any] = {
     },
     # ── 推理轮标题图标（决策表① #33）──
     "round_icon": "🌊",
-    # ── Panel header 统计行（决策表③: ⚕/· 保持，💭→🫧 🛠️→✨ ⏱→🎶）──
+    # ── Panel header 统计行（嘟嘟专属纯正配置：👸🏻模型 · 🌊思考 · 🫧工具 · ✨时间）──
     "panel": {
-        "model_prefix": "⚕",
-        "rounds_icon": "🫧",
-        "tools_icon": "✨",
-        "elapsed_icon": "🎶",
+        "model_prefix": "👸🏻",
+        "rounds_icon": "🌊",
+        "tools_icon": "🫧",
+        "elapsed_icon": "✨",
         "separator": " · ",
     },
     # ── 折叠提示图标（决策表③: ⚡→💦；文案结构不变）──

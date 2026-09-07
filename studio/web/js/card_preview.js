@@ -23,10 +23,10 @@ const CardPreview = {
 
     const theme = state.theme || {};
     const thPanel = theme.panel || {
-      model_prefix: "⚕",
-      rounds_icon: "🫧",
-      tools_icon: "✨",
-      elapsed_icon: "🎶",
+      model_prefix: "👸🏻",
+      rounds_icon: "🌊",
+      tools_icon: "🫧",
+      elapsed_icon: "✨",
       separator: " · "
     };
     const toolIcons = theme.tool_icons || {};

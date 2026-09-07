@@ -187,13 +187,13 @@ class TestPanelHeaderDecisions:
         )
         stats = header["title"]["content"]
         # ⚕model · 🫧N · ✨N · 🎶elapsed（⚕/· 保持，💭→🫧 🛠️→✨ ⏱→🎶）
-        assert stats == "⚕claude-opus-5 · 🫧1 · ✨1 · 🎶12.3s"
+        assert stats == "👸🏻claude-opus-5 · 🌊1 · 🫧1 · ✨12.3s"
 
     def test_stats_row_no_model(self) -> None:
         header = build_panel_header(
             reasoning_rounds=[], tool_steps=[], tool_elapsed_ms=0, model=None,
         )
-        assert header["title"]["content"] == "🫧0 · ✨0 · 🎶0.0s"
+        assert header["title"]["content"] == "🌊0 · 🫧0 · ✨0.0s"
 
     def test_header_chevron_icon_kept(self) -> None:
         # 结构守卫: header 图标仍是官方 chevron token（不是 emoji）

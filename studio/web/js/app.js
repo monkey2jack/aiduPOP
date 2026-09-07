@@ -36,7 +36,7 @@ window.App = {
         web_fetch: "👩🏻‍🚀", grep: "👩🏻‍🔬", glob: "👮🏻‍♀️", exec: "👩🏻‍💻",
         browser: "🥷🏻", agent: "👷🏻‍♀️", check: "👩🏻‍⚖️", analyze: "👩🏻‍🎓", fallback: "👩🏻‍🔧"
       },
-      panel: { model_prefix: "⚕", rounds_icon: "🫧", tools_icon: "✨", elapsed_icon: "🎶", separator: " · " },
+      panel: { model_prefix: "👸🏻", rounds_icon: "🌊", tools_icon: "🫧", elapsed_icon: "✨", separator: " · " },
       footer: { model_prefix: "⚕", reasoning_icon: "🫧" }
     },
     footer: { show_label: false, fields: [] },
