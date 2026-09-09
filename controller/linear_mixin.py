@@ -516,8 +516,8 @@ class UnifiedControllerMixin:
 
             # Note: skip markdown optimization during streaming for performance;
             if state.answer_dirty:
-                # 【嘟嘟定制 v23.2→v23.3】长内容防爆截断（v23.3: 字节级，根治中文3倍膨胀）
-                _raw = clamp_utf8(state.answer_text or " ")
+                # 【嘟嘟定制 v23.4】流式中渐进截断（preserve_tail=False）
+                _raw = clamp_utf8(state.answer_text or " ", preserve_tail=False)
                 content = escape_markdown_asterisks(_raw)
                 session.sequence += 1
                 try:
@@ -655,8 +655,8 @@ class UnifiedControllerMixin:
 
         # Note: skip markdown optimization during streaming for performance;
         if state.answer_dirty and "answer" in session._creation_stages:
-            # 【嘟嘟定制 v23.2→v23.3】长内容防爆截断（v23.3: 字节级，根治中文3倍膨胀）
-            _raw = clamp_utf8(state.answer_text or " ")
+            # 【嘟嘟定制 v23.4】流式中渐进截断（preserve_tail=False）
+            _raw = clamp_utf8(state.answer_text or " ", preserve_tail=False)
             content = escape_markdown_asterisks(_raw)
             session.sequence += 1
             try:

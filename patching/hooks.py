@@ -227,8 +227,15 @@ def on_message_interrupted(
     )
 
 async def on_session_aborted(*, session_key: str = "", **kwargs: Any) -> None:
-    """Session terminated via /stop or reset."""
+    """Session terminated via /stop or reset — cleanup any dangling card sessions."""
     _logger.info("on_session_aborted called for session_key=%s", session_key)
+    try:
+        from ..controller import get_controller
+        ctrl = get_controller()
+        if ctrl and ctrl.enabled:
+            ctrl.force_cleanup_all_sessions(reason="session_aborted")
+    except Exception:
+        _logger.debug("on_session_aborted: cleanup failed", exc_info=True)
 
 async def on_message_completed_wait(*, message_id: str, **kwargs: Any) -> bool:
     """Wait for card completion."""

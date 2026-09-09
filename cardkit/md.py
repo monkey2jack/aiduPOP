@@ -27,26 +27,59 @@ def clamp_content(content: str, max_chars: int = _MAX_DISPLAY_CHARS) -> str:
         + content[-_CLAMP_TAIL:]
     )
 
-_ANSWER_MAX_BYTES = 13000   # 【嘟嘟定制 v23.3】answer 总预算（UTF-8 字节，≈4300汉字）— 中文 24K 字符=72KB 是断屏元凶之一；与 panel 保底(~13KB)+结构开销合计 <30KB 硬限
+_ANSWER_MAX_BYTES = 18000   # 【嘟嘟定制 v23.4】answer 总预算（UTF-8 字节，≈6000汉字）— 与 panel 动态共享，留足 ~10KB 给 panel 和结构开销，严守 <30KB 硬限
 
-def clamp_utf8(text: str, max_bytes: int = _ANSWER_MAX_BYTES) -> str:
-    """按 UTF-8 字节钳制长文 — len() 对中文会低估 3 倍体积（1 汉字=3 字节）.
+def clamp_utf8(text: str, max_bytes: int = _ANSWER_MAX_BYTES, preserve_tail: bool = True) -> str:
+    """按 UTF-8 字节钳制长文 — 支持首尾双保（保留开头背景 + 省略中间过程 + 保留最后核心结论）.
 
-    二分找字节安全边界，头尾保留 + 省略标记。用于 answer 正文防爆。
+    preserve_tail=True 用于封卡完成态（确保最终结论不丢失）；
+    preserve_tail=False 用于流式进行时（渐进截断）.
     """
     raw_len = len(text.encode("utf-8"))
     if raw_len <= max_bytes:
         return text
-    suffix = "\n\n…（内容过长已截断，防卡片溢出）…"
-    budget = max_bytes - len(suffix.encode("utf-8"))
+
+    if not preserve_tail:
+        suffix = "\n\n…（内容过长已截断，防卡片溢出）…"
+        budget = max_bytes - len(suffix.encode("utf-8"))
+        lo, hi = 0, len(text)
+        while lo < hi:
+            mid = (lo + hi + 1) // 2
+            if len(text[:mid].encode("utf-8")) <= budget:
+                lo = mid
+            else:
+                hi = mid - 1
+        return text[:lo] + suffix
+
+    # 封卡完成态：首尾双保（前 60% 头部 + 后 40% 尾部，中段分析省略）
+    omission_tag = "\n\n…（中段分析已省略，保留开头背景与末尾核心结论，防卡片溢出）…\n\n"
+    tag_bytes = len(omission_tag.encode("utf-8"))
+    net_budget = max_bytes - tag_bytes
+    if net_budget <= 0:
+        return text[:100] + omission_tag
+
+    head_budget = int(net_budget * 0.60)
+    tail_budget = net_budget - head_budget
+
     lo, hi = 0, len(text)
     while lo < hi:
         mid = (lo + hi + 1) // 2
-        if len(text[:mid].encode("utf-8")) <= budget:
+        if len(text[:mid].encode("utf-8")) <= head_budget:
             lo = mid
         else:
             hi = mid - 1
-    return text[:lo] + suffix
+    head_text = text[:lo]
+
+    lo, hi = 0, len(text)
+    while lo < hi:
+        mid = (lo + hi + 1) // 2
+        if len(text[-mid:].encode("utf-8")) <= tail_budget:
+            lo = mid
+        else:
+            hi = mid - 1
+    tail_text = text[-lo:] if lo > 0 else ""
+
+    return head_text + omission_tag + tail_text
 
 # ── Pre-compiled regex patterns (P2-01: avoid recompilation on every call) ──
 _RE_FENCED_CODE = re.compile(r'```[\s\S]*?```')

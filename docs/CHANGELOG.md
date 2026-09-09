@@ -6,6 +6,20 @@
 
 ---
 
+## v2.4 patch (2026-09-09) — 会话中断守护 · 残留闪烁点根治版
+
+### 🔧 Fix — 会话中断后卡片残留 & 宿主 session 阻塞
+
+- **会话终止时强制清理残留卡片 session**：`on_session_aborted` 从空实现改为实际调用 `force_cleanup_all_sessions()`，当用户执行 `/stop`、`/restart` 或 session reset 时，自动清理所有非终态的卡片 session（标记 ABORTED → 触发 seal → close streaming），从根源上消除「三个闪烁点永不消失」的现象。
+- **新增 `_emergency_close_streaming()` 兜底**：当 `_preservative_seal` 因 API 错误失败（返回 False）时，`_do_linear_complete_with_fallback` 会额外调用紧急关闭，确保即使 seal 不成功，loading spinner 也一定被移除。
+- **新增 `force_cleanup_all_sessions()` 控制器方法**：遍历所有活跃 session，强制标记 ABORTED 并触发完成流程，是 `/stop` 和 `/restart` 场景下的最后一道防线。
+
+### 📦 Prior (v2.4.3 → v2.4 patch)
+
+- **answer 截断预算扩容至 18KB**（`clamp_utf8` v23.4）：封卡完成态首尾双保（前 60% 头部 + 后 40% 尾部，中段省略），确保长回答的核心结论不丢失；流式进行时渐进截断不变。
+
+---
+
 ## v2.4.3 (2026-09-07) — 极速打字机韵律进化版 · 开箱即用
 
 ### ⚡ Feature & UX — 真实机械打字机流式体验

@@ -1023,6 +1023,8 @@ class StreamCardController(ControllerMixin, UnifiedControllerMixin):
         try:
             result = await self._do_linear_complete(session)
             if not result:
+                # Seal failed — ensure loading spinner is cleaned up
+                await self._emergency_close_streaming(session)
                 await self._send_text_fallback(session, fallback_text=_fallback_text)
         except Exception:
             _logger.warning(
@@ -1030,7 +1032,30 @@ class StreamCardController(ControllerMixin, UnifiedControllerMixin):
                 (session.message_id or "?")[:12],
                 exc_info=True,
             )
+            await self._emergency_close_streaming(session)
             await self._send_text_fallback(session, fallback_text=_fallback_text)
+
+    async def _emergency_close_streaming(self, session: CardSession) -> None:
+        """Last-resort cleanup: close streaming to remove loading spinner.
+
+        Called when _do_linear_complete fails — without this, the three
+        blinking dots remain visible indefinitely.
+        """
+        if not session.card_id or session._streaming_closed or not self._client:
+            return
+        try:
+            session.sequence += 1
+            summary = session.error_message or "(stopped)"
+            await self._client.cardkit_close_streaming(
+                session.card_id, sequence=session.sequence, summary=summary,
+            )
+            session._streaming_closed = True
+            _logger.info(
+                "emergency_close_streaming: closed card=%s msg=%s",
+                session.card_id[:12], (session.message_id or "?")[:12],
+            )
+        except Exception:
+            _logger.debug("emergency_close_streaming failed", exc_info=True)
 
     async def _send_text_fallback(self, session: CardSession, *, fallback_text: str = "") -> None:
         # 可观测：统计纯文本回退
@@ -1080,6 +1105,30 @@ class StreamCardController(ControllerMixin, UnifiedControllerMixin):
                     "HLS: active session over TTL but not terminal, skip cleanup: msg=%s",
                     (mid or "?")[:20],
                 )
+
+    def force_cleanup_all_sessions(self, *, reason: str = "force") -> None:
+        """Force-seal and cleanup ALL non-terminal sessions.
+
+        Called when the host session is aborted (/stop, /restart, reset).
+        Without this, dangling card sessions keep loading spinners alive and
+        block Hermes from accepting new messages.
+        """
+        snapshot = self._sess_canonical_items_snapshot()
+        cleaned = 0
+        for mid, session in snapshot:
+            if mid is None or session.is_terminal_phase:
+                continue
+            _logger.info(
+                "force_cleanup_all_sessions: aborting dangling session msg=%s state=%s reason=%s",
+                (mid or "?")[:20], session.state, reason,
+            )
+            session._was_aborted = True
+            session.state = ABORTED
+            session.flush.mark_completed()
+            self._complete_session(session)
+            cleaned += 1
+        if cleaned:
+            _logger.info("force_cleanup_all_sessions: cleaned %d session(s) reason=%s", cleaned, reason)
 
     @staticmethod
     def _on_bg_task_done(fut: ConcurrentFuture) -> None:
