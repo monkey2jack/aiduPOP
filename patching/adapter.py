@@ -27,6 +27,20 @@ def _classify_gateway_message(content: str) -> str:
     # Auth / pairing messages
     if any(kw in content for kw in ("pairing code", "pairing requests", "配对码", "I don't recognize you")):
         return "auth"
+    # v1.8.0 (P3-4): Gateway lifecycle notices — informational, NOT errors.
+    # hermes _notify_active_sessions_of_shutdown (gateway/run.py) hardcodes
+    # "⚠️ Gateway restarting — …" / "⚠️ Gateway shutting down — …"; the
+    # drain path sends "⏳ Gateway restarting — queued for the next turn…"
+    # and zh locales use "♻ 正在重启网关…" / "⏳ 正在等待 N 个活跃代理结束
+    # 后重启…". The ⚠️ prefix made every one of them land in the "error"
+    # bucket below — production 2026-08 audit: 13/13 planned restarts were
+    # misclassified as errors in the card registry / logs.
+    if any(kw in content for kw in (
+        "Gateway restarting", "Gateway shutting down", "Gateway stopping",
+        "queued for the next turn", "not accepting another turn",
+        "Draining", "正在重启网关", "活跃代理结束后重启",
+    )):
+        return "lifecycle"
     # Error messages
     if any(kw in content for kw in ("❌", "⚠️", "error", "failed", "Error", "Failed")):
         return "error"

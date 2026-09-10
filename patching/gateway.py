@@ -74,22 +74,35 @@ def _wrap_handle_message_with_agent(orig: Callable) -> Callable:
         mid = event.message_id
         anchor_id = self._reply_anchor_for_event(event)
         chat_id = source.chat_id if hasattr(source, "chat_id") else ""
+        # v1.8.1 (P1): 飞书话题隔离键。on_feishu_normalize（_handle_message
+        # 顶部）已先行修正引用消息的虚假 thread_id，此处读到的是真实值。
+        thread_id = getattr(source, "thread_id", None)
+        # v1.8.1 (P1): START 钩子只对飞书渠道生效。此前无平台过滤：QQ/
+        # Telegram 等其它渠道的消息也会创建流式卡会话，卡片创建时对
+        # 非 om_ 消息 id 调 reply 必然失败，会话停在 CREATION_FAILED（终
+        # 态、无泄漏，但每次都刷错误日志且纯飞书部署外的多渠道部署不可
+        # 用）。源头堵：非飞书消息不建会话；下游回调包装器因查不到会话
+        # 自然放行纯文本回复，行为不变。
+        _platform_name = getattr(getattr(source, "platform", None), "value", "").lower()
+        _is_feishu = _platform_name in ("feishu", "lark")
 
         # Track this message as started (for interrupt detection)
         with _started_msg_ids_lock:
             _started_msg_ids.add(mid)
 
         # ── START hook ──
-        try:
-            from .hooks import on_message_started
+        if _is_feishu:
+            try:
+                from .hooks import on_message_started
 
-            on_message_started(
-                message_id=mid,
-                chat_id=chat_id,
-                anchor_id=anchor_id,
-            )
-        except Exception:
-            _logger.warning("HLS: suppressed exception", exc_info=True)
+                on_message_started(
+                    message_id=mid,
+                    chat_id=chat_id,
+                    anchor_id=anchor_id,
+                    thread_id=thread_id,
+                )
+            except Exception:
+                _logger.warning("HLS: suppressed exception", exc_info=True)
         msg_context = {
             "message_id": mid,
             "chat_id": chat_id,
@@ -181,6 +194,7 @@ def _wrap_handle_message_with_agent(orig: Callable) -> Callable:
                             new_message_id=_interrupt_new_mid,
                             chat_id=chat_id,
                             anchor_id=anchor_id,
+                            thread_id=thread_id,
                         )
                     except Exception:
                         _logger.warning("HLS: suppressed exception", exc_info=True)
@@ -267,6 +281,9 @@ def _wrap_run_agent(orig: Callable) -> Callable:
                 _thread_local_ctx.data = dict(ctx)
 
                 # anchor_id fix: use event_message_id as the new card's
+                # v1.8.1 (P1): interrupt 链路同样传递话题隔离键，新卡归入
+                # 新消息所属话题。
+                _src_thread_id = getattr(source, "thread_id", None)
                 try:
                     from .hooks import on_message_interrupted
                     on_message_interrupted(
@@ -274,6 +291,7 @@ def _wrap_run_agent(orig: Callable) -> Callable:
                         new_message_id=event_message_id,
                         chat_id=ctx["chat_id"],
                         anchor_id=event_message_id,
+                        thread_id=_src_thread_id,
                     )
                 except Exception:
                     _logger.debug("run_agent: interrupt hook failed", exc_info=True)
@@ -285,6 +303,7 @@ def _wrap_run_agent(orig: Callable) -> Callable:
                         message_id=event_message_id,
                         chat_id=ctx["chat_id"],
                         anchor_id=event_message_id,
+                        thread_id=_src_thread_id,
                     )
                 except Exception:
                     _logger.warning("HLS: suppressed exception", exc_info=True)
@@ -315,6 +334,43 @@ def _wrap_run_agent(orig: Callable) -> Callable:
                 _msg_ctx.set(_saved_parent_ctx)
                 _thread_local_ctx.data = dict(_saved_parent_ctx)
             raise
+
+        # v1.8.1 (P1): hermes _run_agent 的 except 分支直接返回错误字符串
+        # 而非 result dict。回合已结束但 message.completed 从未触发——若不
+        # 在这里封卡，流式卡永转圈、会话非终态永不回收（泄漏）。用错误
+        # 字符串作为 error_message 封卡，语义与 dict 路径的 error 字段
+        # 一致。封卡成功置 card_sent，外层 _handle_message_with_agent 的
+        # 既有抑制机制自然接管（错误文本已上卡，不再重复发纯文本）。
+        if isinstance(result, str):
+            _ctx_for_error = ctx or _saved_parent_ctx
+            if _ctx_for_error is not None:
+                try:
+                    from .hooks import on_message_completed
+
+                    _err_elapsed = time.monotonic() - _ctx_for_error.get(
+                        "_msg_start_time", time.monotonic()
+                    )
+                    _sealed = on_message_completed(
+                        message_id=_ctx_for_error.get("message_id", ""),
+                        answer="",
+                        duration=_err_elapsed,
+                        error_message=result,
+                        aborted=False,
+                    )
+                    if _sealed:
+                        _ctx_for_error["card_sent"] = True
+                        _logger.info(
+                            "run_agent: sealed card with error string result "
+                            "msg=%s len=%d",
+                            (_ctx_for_error.get("message_id") or "?")[:12],
+                            len(result),
+                        )
+                except Exception:
+                    _logger.warning("run_agent: error string seal failed", exc_info=True)
+            if _saved_parent_ctx is not None:
+                _msg_ctx.set(_saved_parent_ctx)
+                _thread_local_ctx.data = dict(_saved_parent_ctx)
+            return result
 
         # We must fire B's COMPLETE hook first (with B's result), then
         # Previous bug: only A's ABORTED COMPLETE was fired, leaving
@@ -533,10 +589,20 @@ def _wrap_run_background_task(orig: Callable) -> Callable:
 
     @functools.wraps(orig)
     async def wrapper(self, prompt, source, task_id, **kwargs):
+        # v1.8.1 (P2): hermes 把用户命令消息的 om_ id 作为 event_message_id
+        # 传给 _run_background_task（用于回复锚）。接收该参数作为卡片回复
+        # 锚（此前丢弃该参数只能拿合成 task_id 调 reply，对非消息 id 必
+        # 败，/bg 流式卡从未成功过）。
+        event_message_id = kwargs.pop("event_message_id", None)
+        thread_id = getattr(source, "thread_id", None)
+
         # Only intercept Feishu platform
         platform_name = getattr(getattr(source, "platform", None), "value", "").lower()
         if platform_name not in ("feishu", "lark"):
-            return await orig(self, prompt, source, task_id, **kwargs)
+            return await orig(
+                self, prompt, source, task_id,
+                event_message_id=event_message_id, **kwargs,
+            )
 
         chat_id = getattr(source, "chat_id", "")
 
@@ -544,7 +610,7 @@ def _wrap_run_background_task(orig: Callable) -> Callable:
         _msg_ctx.set({
             "message_id": task_id,
             "chat_id": chat_id,
-            "anchor_id": None,  # No reply anchor for background tasks
+            "anchor_id": event_message_id,  # 回复锚点对齐用户命令消息
             "event_message_id": task_id,  # Use task_id so callbacks find a valid eid
             "card_sent": False,
             "_msg_start_time": time.monotonic(),
@@ -556,7 +622,12 @@ def _wrap_run_background_task(orig: Callable) -> Callable:
         # ── Fire START hook ──
         try:
             from .hooks import on_message_started
-            on_message_started(message_id=task_id, chat_id=chat_id, anchor_id=None)
+            on_message_started(
+                message_id=task_id,
+                chat_id=chat_id,
+                anchor_id=event_message_id,
+                thread_id=thread_id,
+            )
         except Exception:
             _logger.debug("background task START hook failed", exc_info=True)
 
@@ -569,6 +640,7 @@ def _wrap_run_background_task(orig: Callable) -> Callable:
                 adapter = self.adapters.get(source.platform)
         except Exception:
             _logger.warning("HLS: suppressed exception", exc_info=True)
+        _wrapper_send = None
         if adapter:
             original_send = adapter.send
 
@@ -583,13 +655,17 @@ def _wrap_run_background_task(orig: Callable) -> Callable:
                         return None
                 return await original_send(chat_id, content, **send_kwargs)
 
+            _wrapper_send = _intercepting_send
             adapter.send = _intercepting_send
             # run concurrently on the same adapter, the first to finish must
             adapter._hls_bg_sending = getattr(adapter, '_hls_bg_sending', 0) + 1
 
         # v1.3.4 fix (P1): orig() + COMPLETE hook 都在 try 块内，finally
         try:
-            result = await orig(self, prompt, source, task_id, **kwargs)
+            result = await orig(
+                self, prompt, source, task_id,
+                event_message_id=event_message_id, **kwargs,
+            )
 
             # ── Fire COMPLETE hook ──
             ctx = _msg_ctx.get()
@@ -643,7 +719,13 @@ def _wrap_run_background_task(orig: Callable) -> Callable:
             return result
         finally:
             if original_send and adapter:
-                adapter.send = original_send
+                # v1.7.0 (R1-08): restore only what WE installed. With two
+                # concurrent background tasks on one adapter, task A's old
+                # `adapter.send = original_send` clobbered task B's still-live
+                # wrapper mid-flight (B's interception silently died). Only
+                # restore when our wrapper is still the active attribute.
+                if getattr(adapter, "send", None) is _wrapper_send:
+                    adapter.send = original_send
                 # v1.3.2 fix (B3-06): default to 0 (not 1) for consistency —
                 # a counter should never default to 1 when decrementing.
                 adapter._hls_bg_sending = getattr(adapter, '_hls_bg_sending', 0) - 1

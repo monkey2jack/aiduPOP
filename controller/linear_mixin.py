@@ -36,6 +36,7 @@ from ..feishu import (
     CARDKIT_SEQUENCE_CONFLICT,
     CARDKIT_STREAMING_CLOSED,
     FeishuAPIError,
+    extract_not_found_element_id,
     is_duplicate_id_error,
     is_element_not_found_error,
     is_schema_error,
@@ -460,20 +461,32 @@ class UnifiedControllerMixin:
                         state.tool_steps_dirty = False
                         return
                     elif is_element_not_found_error(e):
+                        # v1.8.0 (P2-3): batch_update 非幂等（首次尝试服务端
+                        # [+panel] 已插入、hint 已删除），但响应在网络层丢失
+                        # （timeout / SDK 瞬态重试），重发撞上 300315"not find
+                        # elementID"。batch_update 非幂等，这正是 07-02 生产
+                        # 事故链：本分支旧版清空 dirty 却不标记元素已创建 →
+                        # 之后的每次 flush 都全量重建 add_elements batch →
+                        # 300315 死循环 → answer 永远上不了卡片 → 完成时才靠
+                        # 文本兜底重发整条答案。
+                        # 修复：把跟踪状态再同步为服务端真实状态（answer 必在
+                        # 被生效的 batch 里——Path A/B 都会加它），保留 dirty
+                        # 并落穿到本函数下半段的流式/Phase3 更新路径。
                         _logger.warning(
-                            "unified flush phase 2 element not found (non-fatal): %s — "
-                            "batch was atomic (rollback), discarding stale hint, "
-                            "scheduling retry without delete, card=%s",
+                            "unified flush phase 2 element not found — "
+                            "re-syncing creation state (prior batch likely "
+                            "applied server-side, non-idempotent retry "
+                            "collision): %s card=%s",
                             e, session.card_id[:12],
                         )
-                        # 300314: hint already gone on Feishu side
-                        # batch_update is ATOMIC → delete failure rolled back add_elements too
-                        # Discard stale hint tracking so next attempt won't include delete
+                        session._creation_stages.add("answer")
+                        session.existing_elements.add(ANSWER_ELEMENT_ID)
+                        session._creation_stages.add("hint_removed")
                         session.existing_elements.discard(_LOADING_HINT_ELEMENT_ID)
-                        # Reset first_flush so next schedule triggers immediate retry
-                        session._first_flush_done = False
-                        # Do NOT clear dirty flags — elements still need creation
-                        return
+                        session._creation_stages.add("panel")
+                        session.existing_elements.add(UNIFIED_PANEL_ELEMENT_ID)
+                        # 不清 panel_dirty / answer_dirty / tool_steps_dirty：
+                        # 落穿到本函数下半段的流式/Phase3 更新路径。
                     elif is_duplicate_id_error(e):
                         # v1.6.1 fix: 300301 Duplicate ID — panel already exists on Feishu side
                         # but local _creation_stages is out of sync. This is permanent:
@@ -625,9 +638,29 @@ class UnifiedControllerMixin:
                     state.tool_steps_dirty = False
                     return
                 if is_element_not_found_error(e):
-                    # v1.4.1 fix (P1): Phase 3 batch_update 元素不存在 (300315 +
-                    # warning 分支 → hint_removed 仍未同步 + existing_elements
-                    # 重试。info 级别 (不是 warning/error) — 不是真正的故障。
+                    # v1.8.0 (P2-3): extract_not_found_element_id 提取被点名
+                    # 的元素。若是 panel 或 answer 本身不存在（极小概率在
+                    # Phase 2 状态再同步时误标记），丢弃跟踪走 add 路径重建，
+                    # 避免永久 300315 死循环。
+                    _nf = extract_not_found_element_id(e)
+                    if _nf == UNIFIED_PANEL_ELEMENT_ID:
+                        _logger.info(
+                            "unified flush phase 3 panel element not found — "
+                            "dropping panel tracking, will re-create next flush: %s card=%s",
+                            e, session.card_id[:12],
+                        )
+                        session._creation_stages.discard("panel")
+                        session.existing_elements.discard(UNIFIED_PANEL_ELEMENT_ID)
+                        return
+                    if _nf == ANSWER_ELEMENT_ID:
+                        _logger.info(
+                            "unified flush phase 3 answer element not found — "
+                            "dropping answer tracking, will re-create next flush: %s card=%s",
+                            e, session.card_id[:12],
+                        )
+                        session._creation_stages.discard("answer")
+                        session.existing_elements.discard(ANSWER_ELEMENT_ID)
+                        return
                     _logger.info(
                         "unified flush phase 3 element not found (non-fatal): %s — "
                         "syncing hint tracking, card=%s",

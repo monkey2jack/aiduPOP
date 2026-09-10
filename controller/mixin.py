@@ -56,7 +56,7 @@ class ControllerMixin:
     _flush_deferred_background_reviews: Callable[[CardSession], None]
 
     async def _do_cron_deliver(self, chat_id: str, content: str) -> None:
-        _logger.info("cron _do_cron_deliver: chat=%s content_len=%d", chat_id[:12], len(content))
+        _logger.debug("cron _do_cron_deliver: chat=%s content_len=%d", chat_id[:12], len(content))
         await self._ensure_init()
         assert self._client is not None
         card = build_cron_card(content)

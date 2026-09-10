@@ -7,6 +7,7 @@ from .client import (  # noqa: F401
     is_element_limit_error,
     is_schema_error,
     is_element_not_found_error,
+    extract_not_found_element_id,
     is_duplicate_id_error,
     CARDKIT_CONTENT_FAILED,
     CARDKIT_ELEMENT_LIMIT,

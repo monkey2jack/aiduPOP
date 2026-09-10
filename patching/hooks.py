@@ -63,6 +63,13 @@ def on_feishu_normalize(
     if platform != "feishu":
         return
 
+    # v1.8.0 (P2-1): 记录一条飞书入站消息（WS 渠道活性脉冲）
+    try:
+        from ..aowen import record_inbound
+        record_inbound()
+    except Exception:
+        pass
+
     raw = getattr(event, "raw_message", None)
     raw_event = raw.get("event") if isinstance(raw, dict) else None
     if raw_event is None:
@@ -105,6 +112,7 @@ def on_message_started(
     message_id: str = "",
     chat_id: str = "",
     anchor_id: str | None = None,
+    thread_id: str | None = None,
     session_key: str | None = None,
     **kwargs: Any,
 ) -> None:
@@ -113,7 +121,12 @@ def on_message_started(
         ctrl = get_controller()
         if not ctrl.enabled:
             return
-        ctrl.on_message_started(message_id=message_id, chat_id=chat_id, anchor_id=anchor_id)
+        ctrl.on_message_started(
+            message_id=message_id,
+            chat_id=chat_id,
+            anchor_id=anchor_id,
+            thread_id=thread_id,
+        )
     except Exception as exc:
         _logger.warning("on_message_started error: %s", exc, exc_info=True)
 
@@ -217,6 +230,7 @@ def on_message_interrupted(
     new_message_id: str,
     chat_id: str,
     anchor_id: str | None = None,
+    thread_id: str | None = None,
 ) -> None:
     """[注入点 9] interrupt 发生 — message.interrupted."""
     ctrl.on_interrupted(
@@ -224,6 +238,7 @@ def on_message_interrupted(
         new_message_id=new_message_id,
         chat_id=chat_id,
         anchor_id=anchor_id,
+        thread_id=thread_id,
     )
 
 async def on_session_aborted(*, session_key: str = "", **kwargs: Any) -> None:

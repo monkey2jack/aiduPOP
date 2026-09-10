@@ -159,6 +159,24 @@ def is_element_not_found_error(e: "FeishuAPIError") -> bool:
         return True
     return False
 
+# v1.8.0 (P2-3): 300315 错误消息携带被引用的 elementID（真飞书 E2E 实测格式
+# "ErrMsg: not find elementID : context_loading_hint;"）。取出名字可以让上层
+# 精确再同步 session 跟踪状态，而不是只能笼统地当作"某元素不存在"。
+_RE_NOT_FOUND_ELEMENT_ID = re.compile(
+    r"not find elementID\s*[:：]?\s*([A-Za-z0-9_-]+)", re.IGNORECASE
+)
+
+def extract_not_found_element_id(e: "FeishuAPIError") -> str | None:
+    """从元素不存在错误中提取被点名的 element_id（未点名返回 None）.
+
+    仅 300315 变体的消息含 elementID；300313/300314 的消息不带，返回 None，
+    调用方需自行回退到启发式处理。
+    """
+    if not is_element_not_found_error(e):
+        return None
+    m = _RE_NOT_FOUND_ELEMENT_ID.search(str(e))
+    return m.group(1) if m else None
+
 def is_duplicate_id_error(e: "FeishuAPIError") -> bool:
     """判断 FeishuAPIError 是否为 Duplicate ID 错误（300301）。
 
