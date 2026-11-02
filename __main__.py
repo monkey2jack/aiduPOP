@@ -91,6 +91,7 @@ def _find_hermes_python() -> str | None:
     """Auto-detect Hermes Agent Python interpreter path."""
     candidates = [
         Path.home() / ".hermes" / "hermes-agent" / "venv" / "bin" / "python3",
+        *Path.home().glob(".hermes/installs/*/environments/*/venv/bin/python3"),
         Path("/usr/local/lib/hermes-agent/venv/bin/python3"),
         Path("/opt/hermes-agent/venv/bin/python3"),
     ]

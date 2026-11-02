@@ -143,7 +143,7 @@ def _find_gateway_runner_class() -> Any | None:
     for name, module in list(sys.modules.items()):
         if module is None:
             continue
-        if name == "gateway.run" or name.endswith(".gateway.run"):
+        if name in ("gateway.run", "gateway.run_turn", "gateway.run_turn_progress", "gateway.run_turn_persistence") or name.endswith(".gateway.run") or name.startswith("gateway.run_turn"):
             runner = getattr(module, "GatewayRunner", None)
             if runner is not None:
                 return runner

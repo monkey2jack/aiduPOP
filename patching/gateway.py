@@ -156,6 +156,26 @@ def _wrap_handle_message_with_agent(orig: Callable) -> Callable:
                 )
                 _hls_cleanup_ctx()
                 return None
+            # [Issue #6 fix] Check if card session was created and took over this message
+            try:
+                from ..controller import get_controller
+                _ctrl = get_controller()
+                if _ctrl and _ctrl.enabled:
+                    _eid = ctx.get("event_message_id", "") if ctx else ""
+                    if _eid:
+                        _sess = _ctrl._sess_get(_eid)
+                        if _sess and (_sess.card_msg_id or _sess.state not in TERMINAL_PHASES):
+                            _logger.info(
+                                "active card session exists for msg=%s (state=%s, card_msg_id=%s), suppressing gateway final text send",
+                                mid[:12], _sess.state, bool(_sess.card_msg_id),
+                            )
+                            ctx["card_sent"] = True
+                            if isinstance(result, dict):
+                                result["already_sent"] = True
+                            _hls_cleanup_ctx()
+                            return None
+            except Exception:
+                _logger.warning("HLS: card session active check exception", exc_info=True)
             try:
                 from ..controller import get_controller
                 _ctrl = get_controller()
@@ -538,9 +558,23 @@ def _wrap_run_agent(orig: Callable) -> Callable:
                     estimated_cost_usd=estimated_cost_usd,
                     cost_status=cost_status,
                 )
+                # [Issue #6 fix] If card_sent or active card session took over message, mark already_sent
                 if card_sent:
                     result["already_sent"] = True
                     ctx["card_sent"] = True
+                else:
+                    try:
+                        from ..controller import get_controller
+                        _ctrl = get_controller()
+                        if _ctrl and _ctrl.enabled:
+                            _eid = ctx.get("event_message_id", "") or ctx.get("message_id", "")
+                            _sess = _ctrl._sess_get(_eid) if _eid else None
+                            if _sess and (_sess.card_msg_id or _sess.state != "initial"):
+                                result["already_sent"] = True
+                                ctx["card_sent"] = True
+                                _logger.info("run_agent: marked already_sent=True from active card session msg=%s", _eid[:12])
+                    except Exception:
+                        pass
             except Exception:
                 _logger.warning("HLS: suppressed exception", exc_info=True)
         # _msg_ctx now points to the child message's context. We must
