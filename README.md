@@ -18,7 +18,7 @@
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-yellow.svg)](https://www.python.org/)
 [![Built on hermes-lark-streaming](https://img.shields.io/badge/built%20on-hermes--lark--streaming-orange.svg)](https://gitee.com/Aowen-Nowor/hermes-lark-streaming)
-[![Aidu](https://img.shields.io/badge/aiduPOP-☤爱嘟泡波卡-ff69b4.svg)](https://github.com/monkey2jack/aiduPOP)
+[![Aidu](https://img.shields.io/badge/aiduPOP-·爱嘟泡波卡-ff69b4.svg)](https://github.com/monkey2jack/aiduPOP)
 
 **中文** | **[📖 English](README_EN.md)**
 
@@ -349,7 +349,7 @@ aiduPOP/
 
 * 🎨 **泡波样式主题层 `cardkit/theme.py`**：新增 `BUBBLE_WAVE` 出厂默认主题 + `get_theme()` 深度合并机制（配置键 `hermes_lark_streaming.theme` 覆盖）。零配置开箱即用泡波视觉，进阶用户可覆盖任意图标/文本而不改源码。
 * 🧰 **工具图标全面 emoji 化**：13 个工具描述符从飞书官方 token 替换为泡波 emoji 图标群（👩🏻‍🏫/👩🏻‍🎨/👩🏻‍💻/🕵🏻‍♀️/👩🏻‍🔬/👮🏻‍♀️/🥷🏻/👷🏻‍♀️/👩🏻‍⚖️/👩🏻‍🎓/🤹🏻‍♀️），`is_emoji_icon()` 分类器智能分流 emoji/token 渲染路径。
-* 💬 **i18n 文本泡波化**：5 处中文文本键萌化（`processing_prefix`→`☤Hermesing…`、`agent_process`→`🫧`、`rounds`→`🫧{}`、`tools_count`→`✨{}`、`round_n`→`第 {} 波`），英文键保持不动。
+* 💬 **i18n 文本泡波化**：5 处中文文本键萌化（`processing_prefix`→`·Hermesing…`、`agent_process`→`🫧`、`rounds`→`🫧{}`、`tools_count`→`✨{}`、`round_n`→`第 {} 波`），英文键保持不动。
 * 🐛 **工具别名漏配修复**：补齐嘟嘟 Hermes 0.20 真实工具名别名（terminal/execute_code/read_file/patch/search_files/web_extract/browser_exec/delegate_task/vision_analyze/skill_view 等），杜绝 terminal 误显兜底 emoji；移除裸 `search` 前缀歧义别名。
 * 🧪 **v2.2.0 锁定测试**：新增 `tests/test_v220.py`，逐字断言泡波决策 + 嘟嘟五大结构定制守卫（无 header / 无 reaction 拦截 / answer 在 panel 之上 / panel 默认收起 / 无 footer）。
 * 🏗️ **纯换皮不改结构**：仅触碰 i18n/tooluse/elements/adapter 的图标与文本，零触碰 `_model_cache`、贝氏防爆、长文切片、`batch_update` 原子回滚等稳定核心。
@@ -378,4 +378,4 @@ aiduPOP/
 * 🛡️ **Markdown 防爆引擎**: 吸收并融合贝氏卡片的高级安全降级机制，彻底根治飞书卡片 `300314` (格式错误) 与 `200860` (卡片过载) 的死穴。
 * 📊 **无损表格降级 (Compact Mode)**: 当卡片中 Markdown 表格数量超出飞书单卡限制 (最大 5-20 个) 时，不再粗暴转为代码块，而是无损压扁为带有黑体子标题和字段列表的 `Table N · Row M` 形式，彻底杜绝复杂表格引发的崩溃。
 * ✂️ **智能长文断层保护**: 当内容超过飞书安全红线 (24KB+) 触发截断时，算法将智能回退至段落或闭合符边缘，严密保护 Markdown 代码块围栏 (` ``` `) 以及行内变量 (\` \`)，坚决杜绝代码块“腰斩”与排版错乱。
-* 💎 **aiduPOP 核心守护**: 所有截断与降级拦截均在底层 (`md.py` 与 `linear_mixin.py` 的最后一公里) 进行，0 侵入，0 UI 改变，完美保持 aiduPOP 定制的 `_model_cache` 及 (☤💭🛠️⏱) 原生布局。
+* 💎 **aiduPOP 核心守护**: 所有截断与降级拦截均在底层 (`md.py` 与 `linear_mixin.py` 的最后一公里) 进行，0 侵入，0 UI 改变，完美保持 aiduPOP 定制的 `_model_cache` 及 (·💭🛠️⏱) 原生布局。
