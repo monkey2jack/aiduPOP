@@ -14,7 +14,7 @@ Beautiful is not decoration, but the right information being exactly where it be
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-yellow.svg)](https://www.python.org/)
 [![Built on hermes-lark-streaming](https://img.shields.io/badge/built%20on-hermes--lark--streaming-orange.svg)](https://gitee.com/Aowen-Nowor/hermes-lark-streaming)
-[![Aidu](https://img.shields.io/badge/aiduPOP-☤爱嘟泡波卡-ff69b4.svg)](https://github.com/monkey2jack/aiduPOP)
+[![Aidu](https://img.shields.io/badge/aiduPOP-·爱嘟泡波卡-ff69b4.svg)](https://github.com/monkey2jack/aiduPOP)
 
 **[📖 中文文档](README.md)** | **English**
 
@@ -291,7 +291,7 @@ Bubble Wave theme — a configurable theming layer for emoji/text customization.
 
 - **🎨 Bubble Wave theme layer (`cardkit/theme.py`)**: Adds `BUBBLE_WAVE` factory default theme + `get_theme()` deep-merge (config key `hermes_lark_streaming.theme` overrides). Zero-config bubble visuals out of the box; advanced users override any icon/text without touching source.
 - **🧰 Tool icons emoji-ified**: 13 tool descriptors (read/write/exec/web_search/grep/glob/browser/agent/check/analyze/skill) swapped from official Feishu tokens to bubble-wave emoji set. `is_emoji_icon()` classifier routes emoji through text rendering and tokens through `standard_icon`, zero conflict.
-- **💬 i18n bubble text**: 5 Chinese text keys萌化 (`processing_prefix`→`☤Hermesing…`, `agent_process`→`🫧`, `rounds`→`🫧{}`, `tools_count`→`✨{}`, `round_n`→`第 {} 波`); English keys untouched (i18n safety).
+- **💬 i18n bubble text**: 5 Chinese text keys萌化 (`processing_prefix`→`·Hermesing…`, `agent_process`→`🫧`, `rounds`→`🫧{}`, `tools_count`→`✨{}`, `round_n`→`第 {} 波`); English keys untouched (i18n safety).
 - **🐛 Tool alias leak fix**: Added 嘟嘟 Hermes 0.20 real tool-name aliases (`terminal`/`execute_code`→exec, `read_file`→read, `patch`→write, `search_files`→glob, `web_extract`→web_fetch, `browser_exec`→browser, `delegate_task`→agent, `vision_analyze`→analyze, `skill_view`/`skill_manage`/`skills_list`→skill); removed bare `search` alias that prefix-matched `search_files` to the wrong descriptor.
 - **🧪 v2.2.0 lock tests**: `tests/test_v220.py` locks every bubble decision + the five structural guards (no header / no reaction interception / answer-above-panel / panel-collapsed-by-default / no footer).
 - **🏗️ Open-source principle**: Factory default = Bubble Wave. v2.2.0 only swaps icons/text; the stable core (`_model_cache`, Bayesian fallback, long-text fence splitting, `batch_update` atomic rollback, lazy imports) is untouched.
