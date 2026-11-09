@@ -1,4 +1,4 @@
-# aiduPOP☤爱嘟泡波卡 — Hermes Agent 飞书泡波卡
+# <b style="color:#000000">ai</b><b style="color:#525252">du</b><b style="color:#1F4E79">POP</b>·<b style="color:#000000">爱</b><b style="color:#525252">嘟</b><b style="color:#1F4E79">泡波卡</b> — Hermes Agent 飞书泡波卡
 
 <p align="center">
   <img src="docs/images/aidupop-banner-wide.jpg" alt="aiduPOP 爱嘟波泡卡 · 泡波样式横幅" width="100%">
@@ -29,7 +29,7 @@
 
 ## aiduPOP 是什么？
 
-**aiduPOP☤爱嘟泡波卡**是 [Hermes Agent](https://github.com/NousResearch/hermes-agent) 的飞书泡波卡插件 —— 让 AI 的回答和思考过程在飞书里实时、清晰、优雅地呈现。
+**<b style="color:#000000">ai</b><b style="color:#525252">du</b><b style="color:#1F4E79">POP</b>·<b style="color:#000000">爱</b><b style="color:#525252">嘟</b><b style="color:#1F4E79">泡波卡</b>**是 [Hermes Agent](https://github.com/NousResearch/hermes-agent) 的飞书泡波卡插件 —— 让 AI 的回答和思考过程在飞书里实时、清晰、优雅地呈现。
 
 **aiduPOP 是一个独立项目**（不是上游的 fork 镜像）—— 起源并致谢 [Aowen-Nowor/hermes-lark-streaming](https://gitee.com/Aowen-Nowor/hermes-lark-streaming) v1.6.0，在其代码基础之上做了一套完整的**泡波样式（Bubble Wave）改造**：
 
@@ -52,7 +52,7 @@
 
 ```
 ┌──────────────────────────────────────────────────┐
-│        aiduPOP☤爱嘟泡波卡                      │
+│        <b style="color:#000000">ai</b><b style="color:#525252">du</b><b style="color:#1F4E79">POP</b>·<b style="color:#000000">爱</b><b style="color:#525252">嘟</b><b style="color:#1F4E79">泡波卡</b>                      │
 │         Lark (Feishu) Cardsuit 2.0 Streaming     │
 ├──────────────────────────────────────────────────┤
 │  cardkit/     → 卡片渲染引擎（元素、模板）        │
