@@ -1,4 +1,4 @@
-# aiduPOP☤爱嘟泡波卡 — Hermes Aidu Streaming Card
+# <b style="color:#000000">ai</b><b style="color:#525252">du</b><b style="color:#1F4E79">POP</b>·<b style="color:#000000">爱</b><b style="color:#525252">嘟</b><b style="color:#1F4E79">泡波卡</b> — Hermes Aidu Streaming Card
 
 > **Bubble Wave style — lively enough, transparent enough, soothing enough.**
 >
@@ -25,7 +25,7 @@ Beautiful is not decoration, but the right information being exactly where it be
 
 ## What is aiduPOP?
 
-**aiduPOP☤爱嘟泡波卡** is a streaming card plugin for [Hermes Agent](https://github.com/NousResearch/hermes-agent) on Feishu/Lark — rendering the AI's answer and reasoning process in real time, clearly and elegantly.
+**<b style="color:#000000">ai</b><b style="color:#525252">du</b><b style="color:#1F4E79">POP</b>·<b style="color:#000000">爱</b><b style="color:#525252">嘟</b><b style="color:#1F4E79">泡波卡</b>** is a streaming card plugin for [Hermes Agent](https://github.com/NousResearch/hermes-agent) on Feishu/Lark — rendering the AI's answer and reasoning process in real time, clearly and elegantly.
 
 **aiduPOP is an independent project** (not an upstream fork mirror). It originates from — and credits — [Aowen-Nowor/hermes-lark-streaming](https://gitee.com/Aowen-Nowor/hermes-lark-streaming) v1.6.0, on top of which it adds a complete **Bubble Wave** styling layer:
 
@@ -47,7 +47,7 @@ Beautiful is not decoration, but the right information being exactly where it be
 
 ```
 ┌──────────────────────────────────────────────────┐
-│      aiduPOP☤爱嘟泡波卡                          │
+│      <b style="color:#000000">ai</b><b style="color:#525252">du</b><b style="color:#1F4E79">POP</b>·<b style="color:#000000">爱</b><b style="color:#525252">嘟</b><b style="color:#1F4E79">泡波卡</b>                          │
 ├──────────────────────────────────────────────────┤
 │  cardkit/     → Card rendering engine             │
 │  controller/  → Linear controller + card_id track │
