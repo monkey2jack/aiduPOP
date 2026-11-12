@@ -1,7 +1,7 @@
 # <b style="color:#000000">ai</b><b style="color:#525252">du</b><b style="color:#1F4E79">POP</b>·<b style="color:#000000">爱</b><b style="color:#525252">嘟</b><b style="color:#1F4E79">泡波卡</b> — Hermes Agent 飞书泡波卡
 
 <p align="center">
-  <img src="docs/images/aidupop-banner-wide.jpg" alt="aiduPOP 爱嘟波泡卡 · 泡波样式横幅" width="100%">
+  <img src="https://raw.githubusercontent.com/monkey2jack/monkey2jack/main/assets/aidu-human-connection-20261113.png" alt="aidu 人机连接" width="100%">
 </p>
 
 > **泡波样式（Bubble Wave）——够灵动，够透明，够治愈**
